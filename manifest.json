@@ -1,0 +1,10 @@
+{
+  "id": "obsidian-callout-commands",
+  "name": "Obsidian Callout Commands",
+  "version": "0.0.1",
+  "minAppVersion": "0.12.0",
+  "description": "An Obsidian plugin providing many commands for inserting/changing/removing callouts.",
+  "author": "Aly Thobani",
+  "authorUrl": "https://github.com/alythobani/",
+  "isDesktopOnly": false
+}
