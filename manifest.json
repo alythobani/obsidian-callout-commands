@@ -1,6 +1,6 @@
 {
   "id": "obsidian-callout-commands",
-  "name": "Obsidian Callout Commands",
+  "name": "Callout Commands",
   "version": "0.0.1",
   "minAppVersion": "0.12.0",
   "description": "An Obsidian plugin providing many commands for inserting/changing/removing callouts.",

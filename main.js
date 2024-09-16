@@ -2,13 +2,13 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const obsidian_1 = require("obsidian");
 class CalloutCommands extends obsidian_1.Plugin {
-    async onload() {
+    onload() {
         console.log("Callout Commands loaded.");
         // 1. Turn selected lines into a callout
         this.addCommand({
             id: "turn-into-callout",
             name: "Turn Selected Lines into Callout",
-            editorCallback: (editor, ctx) => {
+            editorCallback: (editor, _ctx) => {
                 const selectedText = editor.getSelection();
                 const calloutType = "note"; // Default callout type
                 editor.replaceSelection(`> [!${calloutType}] \n${selectedText}`);
@@ -19,7 +19,7 @@ class CalloutCommands extends obsidian_1.Plugin {
         this.addCommand({
             id: "remove-callout",
             name: "Remove Callout from Selected Lines",
-            editorCallback: (editor, ctx) => {
+            editorCallback: (editor, _ctx) => {
                 const selectedText = editor.getSelection();
                 const removedCallout = selectedText.replace(/^> \[!\w+\] \n/, ""); // Remove callout syntax
                 editor.replaceSelection(removedCallout);
@@ -30,11 +30,11 @@ class CalloutCommands extends obsidian_1.Plugin {
         this.addCommand({
             id: "change-callout",
             name: "Change Current Callout Type",
-            editorCallback: (editor, ctx) => {
+            editorCallback: (editor, _ctx) => {
                 const cursor = editor.getCursor();
                 const line = editor.getLine(cursor.line);
                 const newCalloutType = "info"; // New callout type, e.g., "info"
-                if (line.match(/^> \[!\w+\]/)) {
+                if (/^> \[!\w+\]/.exec(line)) {
                     const updatedLine = line.replace(/^> \[!\w+\]/, `> [!${newCalloutType}]`);
                     editor.setLine(cursor.line, updatedLine);
                     new obsidian_1.Notice(`Callout type changed to ${newCalloutType}.`);
