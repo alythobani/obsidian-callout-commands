@@ -1,4 +1,5 @@
 import { Notice, Plugin } from "obsidian";
+import { turnSelectedLinesIntoQuoteCallout } from "./commands";
 
 export default class CalloutCommands extends Plugin {
   onload() {
@@ -6,14 +7,9 @@ export default class CalloutCommands extends Plugin {
 
     // 1. Turn selected lines into a callout
     this.addCommand({
-      id: "turn-into-callout",
-      name: "Turn Selected Lines into Callout",
-      editorCallback: (editor, _ctx) => {
-        const selectedText = editor.getSelection();
-        const calloutType = "note"; // Default callout type
-        editor.replaceSelection(`> [!${calloutType}] \n${selectedText}`);
-        new Notice("Selected lines turned into a callout.");
-      },
+      id: "turn-selected-lines-into-quote-callout",
+      name: "Turn Selected Lines into Quote Callout",
+      editorCheckCallback: turnSelectedLinesIntoQuoteCallout,
     });
 
     // 2. Remove callout from selected lines
