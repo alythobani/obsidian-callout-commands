@@ -1,5 +1,7 @@
 import { Command, Editor } from "obsidian";
 
+const QUOTE_CALLOUT_HEADER = "> [!quote] Quote";
+
 type EditorCheckCallback = Command["editorCheckCallback"];
 
 /**
@@ -21,10 +23,19 @@ function maybePerformActionOnSelectedText(
   return true;
 }
 
+function turnCurrentLineIntoQuoteCallout(editor: Editor) {
+  const cursor = editor.getCursor();
+  const { line, ch } = cursor;
+  const lineText = editor.getLine(line);
+  const newText = `${QUOTE_CALLOUT_HEADER}\n> ${lineText}`;
+  editor.replaceRange(newText, { line, ch: 0 }, { line, ch: lineText.length });
+  editor.setCursor({ line: line + 1, ch: ch + 2 }); // Keep cursor where it was relative to the original line
+}
+
 const maybeTurnSelectedLinesIntoQuoteCallout: EditorCheckCallback = (checking, editor, _ctx) => {
   return maybePerformActionOnSelectedText(checking, editor, (editor, selectedText) => {
     const replacedText = selectedText.replace(/^/gm, "> ");
-    editor.replaceSelection(`\n\n> [!quote] Quote\n${replacedText}\n\n`);
+    editor.replaceSelection(`\n\n${QUOTE_CALLOUT_HEADER}\n${replacedText}\n\n`, selectedText);
   });
 };
 
@@ -40,6 +51,17 @@ export const allCommands: Command[] = [
     id: "turn-selected-lines-into-quote-callout",
     name: "Turn Selected Lines into Quote Callout",
     editorCheckCallback: maybeTurnSelectedLinesIntoQuoteCallout,
+  },
+  {
+    id: "turn-current-line-into-quote-callout",
+    name: "Turn Current Line into Quote Callout",
+    editorCheckCallback: (checking, editor, _ctx) => {
+      const selectedText = editor.getSelection();
+      if (selectedText) return false; // Don't show the command if text is selected
+      if (checking) return true;
+      turnCurrentLineIntoQuoteCallout(editor);
+      return true;
+    },
   },
   {
     id: "remove-callout-from-selected-lines",
