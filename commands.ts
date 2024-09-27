@@ -23,7 +23,7 @@ function maybePerformActionOnSelectedText(
   return true;
 }
 
-function turnCurrentLineIntoQuoteCallout(editor: Editor) {
+function wrapCurrentLineInQuoteCallout(editor: Editor) {
   const cursor = editor.getCursor();
   const { line, ch } = cursor;
   const lineText = editor.getLine(line);
@@ -53,13 +53,13 @@ export const allCommands: Command[] = [
     editorCheckCallback: maybeTurnSelectedLinesIntoQuoteCallout,
   },
   {
-    id: "turn-current-line-into-quote-callout",
-    name: "Turn Current Line into Quote Callout",
+    id: "wrap-current-line-in-quote-callout",
+    name: "Wrap Current Line in Quote Callout",
     editorCheckCallback: (checking, editor, _ctx) => {
       const selectedText = editor.getSelection();
       if (selectedText) return false; // Don't show the command if text is selected
       if (checking) return true;
-      turnCurrentLineIntoQuoteCallout(editor);
+      wrapCurrentLineInQuoteCallout(editor);
       return true;
     },
   },
