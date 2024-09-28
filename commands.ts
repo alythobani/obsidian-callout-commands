@@ -1,71 +1,71 @@
-import { Command, Editor } from "obsidian";
+import { Command, Editor, EditorPosition } from "obsidian";
+import { makeCurrentLineCheckCallback, makeSelectionCheckCallback } from "./editorCheckCallback";
+import { getSelectedLinesRangeAndText } from "./selectionHelpers";
 
 const QUOTE_CALLOUT_HEADER = "> [!quote] Quote";
 
-type EditorCheckCallback = Command["editorCheckCallback"];
-
-/**
- * Perform an action on the selected text if there is any, and return whether the action was performed.
- *
- * @param checking Whether we are checking or performing the action (see `editorCheckCallback`)
- * @param editor The editor instance
- * @param action The editor action to perform on the selected text
- */
-function maybePerformActionOnSelectedText(
-  checking: boolean,
-  editor: Editor,
-  action: (editor: Editor, selectedText: string) => void
-): boolean {
-  const selectedText = editor.getSelection();
-  if (!selectedText) return false; // Don't show the command if no text is selected
-  if (checking) return true;
-  action(editor, selectedText);
-  return true;
-}
-
-function wrapCurrentLineInQuoteCallout(editor: Editor) {
-  const cursor = editor.getCursor();
-  const { line, ch } = cursor;
-  const lineText = editor.getLine(line);
-  const newText = `${QUOTE_CALLOUT_HEADER}\n> ${lineText}`;
-  editor.replaceRange(newText, { line, ch: 0 }, { line, ch: lineText.length });
-  editor.setCursor({ line: line + 1, ch: ch + 2 }); // Keep cursor where it was relative to the original line
-}
-
-const maybeTurnSelectedLinesIntoQuoteCallout: EditorCheckCallback = (checking, editor, _ctx) => {
-  return maybePerformActionOnSelectedText(checking, editor, (editor, selectedText) => {
-    const replacedText = selectedText.replace(/^/gm, "> ");
-    editor.replaceSelection(`\n\n${QUOTE_CALLOUT_HEADER}\n${replacedText}\n\n`, selectedText);
-  });
-};
-
-const maybeRemoveCalloutFromSelectedLines: EditorCheckCallback = (checking, editor, _ctx) => {
-  return maybePerformActionOnSelectedText(checking, editor, (editor, selectedText) => {
-    const removedCallout = selectedText.replace(/^> (\[!\w+\] )?/gm, "");
-    editor.replaceSelection(removedCallout);
-  });
-};
-
 export const allCommands: Command[] = [
   {
-    id: "turn-selected-lines-into-quote-callout",
-    name: "Turn Selected Lines into Quote Callout",
-    editorCheckCallback: maybeTurnSelectedLinesIntoQuoteCallout,
+    id: "wrap-selected-lines-in-quote-callout",
+    name: "Wrap Selected Lines in Quote Callout",
+    editorCheckCallback: makeSelectionCheckCallback(wrapSelectedLinesInQuoteCallout),
   },
   {
     id: "wrap-current-line-in-quote-callout",
     name: "Wrap Current Line in Quote Callout",
-    editorCheckCallback: (checking, editor, _ctx) => {
-      const selectedText = editor.getSelection();
-      if (selectedText) return false; // Don't show the command if text is selected
-      if (checking) return true;
-      wrapCurrentLineInQuoteCallout(editor);
-      return true;
-    },
+    editorCheckCallback: makeCurrentLineCheckCallback(wrapCurrentLineInQuoteCallout),
   },
   {
     id: "remove-callout-from-selected-lines",
     name: "Remove Callout from Selected Lines",
-    editorCheckCallback: maybeRemoveCalloutFromSelectedLines,
+    editorCheckCallback: makeSelectionCheckCallback(removeCalloutFromSelectedLines),
   },
 ];
+
+/**
+ * Wraps the selected lines in a quote callout. Note that we intentionally do not adjust the cursor
+ * position after wrapping the text, since the full callout block will be selected after the wrapping,
+ * which is convenient in case the user then wants to call another command (e.g. remove/change
+ * callout) on the block.
+ */
+function wrapSelectedLinesInQuoteCallout(editor: Editor): void {
+  const { range, text } = getSelectedLinesRangeAndText(editor);
+  const prependedLines = text.replace(/^/gm, "> ");
+  const newText = `${QUOTE_CALLOUT_HEADER}\n${prependedLines}`;
+  editor.replaceRange(newText, range.from, range.to);
+}
+
+/**
+ * Moves the cursor one line down (for the added callout header) and two characters to the right
+ * (for the prepended `> `).
+ *
+ * @param editor The editor to move the cursor in.
+ * @param originalCursor The cursor position before the callout was added.
+ */
+function setCursorPositionAfterWrappingWithCallout(
+  editor: Editor,
+  originalCursor: EditorPosition
+): void {
+  const { line, ch } = originalCursor;
+  editor.setCursor({ line: line + 1, ch: ch + 2 });
+}
+
+function wrapCurrentLineInQuoteCallout(editor: Editor): void {
+  // Save the cursor position before editing the text
+  const originalCursor = editor.getCursor();
+  // We can actually just call `wrapSelectedLinesInQuoteCallout` here, since the selected lines
+  // range will be the current line if nothing is selected.
+  wrapSelectedLinesInQuoteCallout(editor);
+  setCursorPositionAfterWrappingWithCallout(editor, originalCursor);
+}
+
+/**
+ * Removes the callout from the selected lines.
+ *
+ * TODO: Remove the full header line if it's the default header title.
+ */
+function removeCalloutFromSelectedLines(editor: Editor): void {
+  const { range, text } = getSelectedLinesRangeAndText(editor);
+  const removedCallout = text.replace(/^> (\[!\w+\] )?/gm, "");
+  editor.replaceRange(removedCallout, range.from, range.to);
+}

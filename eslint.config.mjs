@@ -26,6 +26,7 @@ export default tseslint.config(
           varsIgnorePattern: "^_",
         },
       ],
+      "@typescript-eslint/explicit-function-return-type": "error",
     },
   }
 );

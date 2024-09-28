@@ -2,7 +2,7 @@ import { Plugin } from "obsidian";
 import { allCommands } from "./commands";
 
 export default class CalloutCommands extends Plugin {
-  onload() {
+  onload(): void {
     console.log("Callout Commands loaded.");
 
     for (const command of allCommands) {
@@ -10,7 +10,7 @@ export default class CalloutCommands extends Plugin {
     }
   }
 
-  onunload() {
+  onunload(): void {
     console.log("Callout Commands unloaded.");
   }
 }
