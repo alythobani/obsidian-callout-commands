@@ -63,12 +63,19 @@ function wrapCurrentLineInQuoteCallout(editor: Editor): void {
 }
 
 /**
- * Removes the callout from the selected lines.
- *
- * TODO: Remove the full header line if it's the default header title.
+ * Removes the callout from the selected lines. Retains the title if it's not the default header for
+ * the given callout, else removes the entire header line.
  */
 function removeCalloutFromSelectedLines(editor: Editor): void {
   const { range, text } = getSelectedLinesRangeAndText(editor);
+  const { from, to } = range;
+  const firstLineText = editor.getLine(from.line);
+  if (firstLineText === QUOTE_CALLOUT_HEADER) {
+    const linesWithoutHeader = text.replace(/^.*\n/, "");
+    const unIndentedLines = linesWithoutHeader.replace(/^> /gm, "");
+    editor.replaceRange(unIndentedLines, from, to);
+    return;
+  }
   const removedCallout = text.replace(/^> (\[!\w+\] )?/gm, "");
-  editor.replaceRange(removedCallout, range.from, range.to);
+  editor.replaceRange(removedCallout, from, to);
 }
