@@ -27,6 +27,9 @@ export const allCommands: Command[] = [
  * position after wrapping the text, since the full callout block will be selected after the wrapping,
  * which is convenient in case the user then wants to call another command (e.g. remove/change
  * callout) on the block.
+ *
+ * TODO: Actually, the behaviour post-wrapping is buggy if in visual mode instead of visual line
+ * mode. Try setting the selection manually and see if that helps.
  */
 function wrapSelectedLinesInQuoteCallout(editor: Editor): void {
   const { range, text } = getSelectedLinesRangeAndText(editor);
