@@ -1,43 +1,33 @@
-import { Editor, EditorPosition } from "obsidian";
+import { Editor, EditorRange } from "obsidian";
 import { DEFAULT_QUOTE_CALLOUT_HEADER } from "./calloutHeaders";
-import { getSelectedLinesRangeAndText } from "./selectionHelpers";
+import { getSelectedLinesRangeAndText, getSelectionRange } from "./selectionHelpers";
 
 /**
- * Wraps the selected lines in a quote callout. Note that we intentionally do not adjust the cursor
- * position after wrapping the text, since the full callout block will be selected after the wrapping,
- * which is convenient in case the user then wants to call another command (e.g. remove/change
- * callout) on the block.
- *
- * TODO: Actually, the behaviour post-wrapping is buggy if in visual mode instead of visual line
- * mode. Try setting the selection manually and see if that helps.
+ * Wraps the selected lines in a quote callout.
  */
 export function wrapSelectedLinesInQuoteCallout(editor: Editor): void {
-  const { range, text } = getSelectedLinesRangeAndText(editor);
+  const selectionRange = getSelectionRange(editor);
+  const { range: selectedLinesRange, text } = getSelectedLinesRangeAndText(editor);
   const prependedLines = text.replace(/^/gm, "> ");
   const newText = `${DEFAULT_QUOTE_CALLOUT_HEADER}\n${prependedLines}`;
-  editor.replaceRange(newText, range.from, range.to);
+  editor.replaceRange(newText, selectedLinesRange.from, selectedLinesRange.to);
+  setSelectionAfterWrappingLinesWithCallout(editor, selectionRange);
 }
 
-/**
- * Moves the cursor one line down (for the added callout header) and two characters to the right
- * (for the prepended `> `).
- *
- * @param editor The editor to move the cursor in.
- * @param originalCursor The cursor position before the callout was added.
- */
-function setCursorPositionAfterWrappingWithCallout(
+function setSelectionAfterWrappingLinesWithCallout(
   editor: Editor,
-  originalCursor: EditorPosition
+  originalSelectionRange: EditorRange
 ): void {
-  const { line, ch } = originalCursor;
-  editor.setCursor({ line: line + 1, ch: ch + 2 });
+  const { from, to } = originalSelectionRange;
+  const newFrom = { line: from.line, ch: 0 };
+  const newTo = { line: to.line + 1, ch: to.ch + 2 };
+  editor.setSelection(newFrom, newTo);
 }
 
 export function wrapCurrentLineInQuoteCallout(editor: Editor): void {
-  // Save the cursor position before editing the text
-  const originalCursor = editor.getCursor();
-  // We can actually just call `wrapSelectedLinesInQuoteCallout` here, since the selected lines
-  // range will be the current line if nothing is selected.
-  wrapSelectedLinesInQuoteCallout(editor);
-  setCursorPositionAfterWrappingWithCallout(editor, originalCursor);
+  const { line, ch } = editor.getCursor();
+  const lineText = editor.getLine(line);
+  const newText = `${DEFAULT_QUOTE_CALLOUT_HEADER}\n> ${lineText}`;
+  editor.replaceRange(newText, { line, ch: 0 }, { line, ch: lineText.length });
+  editor.setSelection({ line, ch: 0 }, { line: line + 1, ch: ch + 2 });
 }
