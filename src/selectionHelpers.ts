@@ -18,7 +18,7 @@ function getSelectedLinesRange(editor: Editor): EditorRange {
   return { from: startOfFirstSelectedLine, to: endOfLastSelectedLine };
 }
 
-function getSelectionRange(editor: Editor): EditorRange {
+export function getSelectionRange(editor: Editor): EditorRange {
   const from = editor.getCursor("from");
   const to = editor.getCursor("to");
   return { from, to };

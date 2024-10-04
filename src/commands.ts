@@ -1,8 +1,14 @@
-import { Command, Editor, EditorPosition } from "obsidian";
-import { makeCurrentLineCheckCallback, makeSelectionCheckCallback } from "./editorCheckCallback";
-import { getSelectedLinesRangeAndText } from "./selectionHelpers";
+import { Command, Editor, EditorPosition, EditorRange } from "obsidian";
+import { getLastElement, isNonEmptyArray } from "./arrayUtils";
+import {
+  makeCalloutSelectionCheckCallback,
+  makeCurrentLineCheckCallback,
+  makeSelectionCheckCallback,
+} from "./editorCheckCallback";
+import { getSelectedLinesRangeAndText, getSelectionRange } from "./selectionHelpers";
 
-const QUOTE_CALLOUT_HEADER = "> [!quote] Quote";
+const BASE_QUOTE_CALLOUT_HEADER = "> [!quote]";
+const DEFAULT_QUOTE_CALLOUT_HEADER = `${BASE_QUOTE_CALLOUT_HEADER} Quote`;
 
 export const allCommands: Command[] = [
   {
@@ -18,7 +24,7 @@ export const allCommands: Command[] = [
   {
     id: "remove-callout-from-selected-lines",
     name: "Remove Callout from Selected Lines",
-    editorCheckCallback: makeSelectionCheckCallback(removeCalloutFromSelectedLines),
+    editorCheckCallback: makeCalloutSelectionCheckCallback(removeCalloutFromSelectedLines),
   },
 ];
 
@@ -34,7 +40,7 @@ export const allCommands: Command[] = [
 function wrapSelectedLinesInQuoteCallout(editor: Editor): void {
   const { range, text } = getSelectedLinesRangeAndText(editor);
   const prependedLines = text.replace(/^/gm, "> ");
-  const newText = `${QUOTE_CALLOUT_HEADER}\n${prependedLines}`;
+  const newText = `${DEFAULT_QUOTE_CALLOUT_HEADER}\n${prependedLines}`;
   editor.replaceRange(newText, range.from, range.to);
 }
 
@@ -67,15 +73,100 @@ function wrapCurrentLineInQuoteCallout(editor: Editor): void {
  * the given callout, else removes the entire header line.
  */
 function removeCalloutFromSelectedLines(editor: Editor): void {
-  const { range, text } = getSelectedLinesRangeAndText(editor);
-  const { from, to } = range;
-  const firstLineText = editor.getLine(from.line);
-  if (firstLineText === QUOTE_CALLOUT_HEADER) {
-    const linesWithoutHeader = text.replace(/^.*\n/, "");
-    const unIndentedLines = linesWithoutHeader.replace(/^> /gm, "");
-    editor.replaceRange(unIndentedLines, from, to);
+  const selectionRange = getSelectionRange(editor); // Actual selection range
+  const { range: selectedLinesRange, text } = getSelectedLinesRangeAndText(editor); // Full selected lines range and text
+  const textLines = text.split("\n") as [string, ...string[]]; // `split` is guaranteed to return at least one element
+  const [oldFirstLine, oldLastLine] = [textLines[0], getLastElement(textLines)]; // Save now to compare with post-edit lines
+  if ([BASE_QUOTE_CALLOUT_HEADER, DEFAULT_QUOTE_CALLOUT_HEADER].includes(oldFirstLine)) {
+    const linesWithoutHeader = textLines.slice(1);
+    const unquotedLines = linesWithoutHeader.map((line) => line.replace(/^> /, ""));
+    removeCallout({
+      editor,
+      adjustedTextLines: unquotedLines,
+      didRemoveHeader: true,
+      selectionRange,
+      selectedLinesRange,
+      oldFirstLine,
+      oldLastLine,
+    });
     return;
   }
-  const removedCallout = text.replace(/^> (\[!\w+\] )?/gm, "");
-  editor.replaceRange(removedCallout, from, to);
+  const customCalloutTitle = oldFirstLine.replace(/^> \[!\w+\] /, "");
+  const unquotedLines = textLines.slice(1).map((line) => line.replace(/^> /, ""));
+  const adjustedTextLines = [customCalloutTitle, ...unquotedLines];
+  removeCallout({
+    editor,
+    adjustedTextLines,
+    didRemoveHeader: false,
+    selectionRange,
+    selectedLinesRange,
+    oldFirstLine,
+    oldLastLine,
+  });
+}
+
+function removeCallout({
+  editor,
+  adjustedTextLines,
+  didRemoveHeader,
+  selectionRange,
+  selectedLinesRange,
+  oldFirstLine,
+  oldLastLine,
+}: {
+  editor: Editor;
+  adjustedTextLines: readonly string[];
+  didRemoveHeader: boolean;
+  selectionRange: EditorRange;
+  selectedLinesRange: EditorRange;
+  oldFirstLine: string;
+  oldLastLine: string;
+}): void {
+  if (!isNonEmptyArray(adjustedTextLines)) {
+    // Must have removed the header line completely and there are no other lines
+    editor.replaceRange("", selectedLinesRange.from, selectedLinesRange.to);
+    editor.setSelection(selectedLinesRange.from, selectedLinesRange.from);
+    return;
+  }
+
+  const newText = adjustedTextLines.join("\n");
+
+  // Replace the selected lines with the unquoted text
+  editor.replaceRange(newText, selectedLinesRange.from, selectedLinesRange.to);
+
+  // Set the selection to the same relative position as before, but with the new text
+  setSelectionAfterRemovingCallout({
+    adjustedTextLines,
+    selectionRange,
+    oldLastLine,
+    didRemoveHeader,
+    oldFirstLine,
+    editor,
+  });
+}
+
+function setSelectionAfterRemovingCallout({
+  adjustedTextLines,
+  selectionRange,
+  oldLastLine,
+  didRemoveHeader,
+  oldFirstLine,
+  editor,
+}: {
+  adjustedTextLines: [string, ...string[]];
+  selectionRange: EditorRange;
+  oldLastLine: string;
+  didRemoveHeader: boolean;
+  oldFirstLine: string;
+  editor: Editor;
+}): void {
+  const newFirstLine = adjustedTextLines[0];
+  const newLastLine = getLastElement(adjustedTextLines);
+  const newToCh = selectionRange.to.ch - (oldLastLine.length - newLastLine.length);
+  const newTo = { line: selectionRange.to.line - (didRemoveHeader ? 1 : 0), ch: newToCh };
+  const newFromCh = didRemoveHeader
+    ? 0
+    : selectionRange.from.ch - (oldFirstLine.length - newFirstLine.length);
+  const newFrom = { line: selectionRange.from.line, ch: newFromCh };
+  editor.setSelection(newFrom, newTo);
 }

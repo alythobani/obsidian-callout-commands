@@ -1,4 +1,7 @@
 import { Command, Editor } from "obsidian";
+import { getSelectedLinesRangeAndText } from "./selectionHelpers";
+
+const CALLOUT_HEADER_REGEX = /^> \[!\w+\]/;
 
 /**
  * See Obsidian docs for `editorCheckCallback` for more information:
@@ -15,6 +18,21 @@ export function makeSelectionCheckCallback(
 ): EditorCheckCallback {
   return (checking, editor, _ctx) => {
     if (!editor.somethingSelected()) return false; // Only show the command if text is selected
+    return showOrRunCommand(editorAction, editor, checking);
+  };
+}
+
+/**
+ * Creates an editor check callback for a command that should only be available when the currently
+ * selected lines begin with a callout.
+ */
+export function makeCalloutSelectionCheckCallback(
+  editorAction: (editor: Editor) => void
+): EditorCheckCallback {
+  return (checking, editor, _ctx) => {
+    if (!editor.somethingSelected()) return false; // Only show the command if text is selected
+    const { text: selectedLinesText } = getSelectedLinesRangeAndText(editor);
+    if (!CALLOUT_HEADER_REGEX.test(selectedLinesText)) return false; // Only show the command if the selected text is a callout
     return showOrRunCommand(editorAction, editor, checking);
   };
 }
