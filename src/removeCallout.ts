@@ -1,7 +1,12 @@
 import { Editor, EditorRange } from "obsidian";
 import { getLastElement, isNonEmptyArray } from "./arrayUtils";
 import { BASE_QUOTE_CALLOUT_HEADER, DEFAULT_QUOTE_CALLOUT_HEADER } from "./calloutHeaders";
-import { getSelectedLinesRangeAndText, getSelectionRange } from "./selectionHelpers";
+import {
+  CursorPositions,
+  getCursorPositions,
+  getNewAnchorAndHead,
+  getSelectedLinesRangeAndText,
+} from "./selectionHelpers";
 
 /**
  * Removes the callout from the selected lines. Retains the title if it's not the default header for
@@ -11,7 +16,7 @@ import { getSelectedLinesRangeAndText, getSelectionRange } from "./selectionHelp
  * convert the text back to a callout with the custom title if desired.
  */
 export function removeCalloutFromSelectedLines(editor: Editor): void {
-  const selectionRange = getSelectionRange(editor); // Actual selection range
+  const originalCursorPositions = getCursorPositions(editor);
   const { range: selectedLinesRange, text } = getSelectedLinesRangeAndText(editor); // Full selected lines range and text
   const textLines = text.split("\n") as [string, ...string[]]; // `split` is guaranteed to return at least one element
   const [oldFirstLine, oldLastLine] = [textLines[0], getLastElement(textLines)]; // Save now to compare with post-edit lines
@@ -22,7 +27,7 @@ export function removeCalloutFromSelectedLines(editor: Editor): void {
       editor,
       adjustedTextLines: unquotedLines,
       didRemoveHeader: true,
-      selectionRange,
+      originalCursorPositions,
       selectedLinesRange,
       oldFirstLine,
       oldLastLine,
@@ -36,7 +41,7 @@ export function removeCalloutFromSelectedLines(editor: Editor): void {
     editor,
     adjustedTextLines,
     didRemoveHeader: false,
-    selectionRange,
+    originalCursorPositions,
     selectedLinesRange,
     oldFirstLine,
     oldLastLine,
@@ -47,7 +52,7 @@ function removeCallout({
   editor,
   adjustedTextLines,
   didRemoveHeader,
-  selectionRange,
+  originalCursorPositions,
   selectedLinesRange,
   oldFirstLine,
   oldLastLine,
@@ -55,7 +60,7 @@ function removeCallout({
   editor: Editor;
   adjustedTextLines: readonly string[];
   didRemoveHeader: boolean;
-  selectionRange: EditorRange;
+  originalCursorPositions: CursorPositions;
   selectedLinesRange: EditorRange;
   oldFirstLine: string;
   oldLastLine: string;
@@ -75,7 +80,7 @@ function removeCallout({
   // Set the selection to the same relative position as before, but with the new text
   setSelectionAfterRemovingCallout({
     adjustedTextLines,
-    selectionRange,
+    originalCursorPositions,
     oldLastLine,
     didRemoveHeader,
     oldFirstLine,
@@ -87,31 +92,31 @@ function removeCallout({
  * Sets the selection after removing a callout from the selected lines. This function is necessary
  * because the length and content of the lines may have changed, so the selection must be adjusted
  * accordingly.
- *
- * TODO: correctly set anchor vs head based on the direction of the selection
  */
 function setSelectionAfterRemovingCallout({
   adjustedTextLines,
-  selectionRange,
+  originalCursorPositions,
   oldLastLine,
   didRemoveHeader,
   oldFirstLine,
   editor,
 }: {
   adjustedTextLines: [string, ...string[]];
-  selectionRange: EditorRange;
+  originalCursorPositions: CursorPositions;
   oldLastLine: string;
   didRemoveHeader: boolean;
   oldFirstLine: string;
   editor: Editor;
 }): void {
+  const { from: originalFrom, to: originalTo } = originalCursorPositions;
   const newFirstLine = adjustedTextLines[0];
   const newLastLine = getLastElement(adjustedTextLines);
-  const newToCh = selectionRange.to.ch - (oldLastLine.length - newLastLine.length);
-  const newTo = { line: selectionRange.to.line - (didRemoveHeader ? 1 : 0), ch: newToCh };
+  const newToCh = originalTo.ch - (oldLastLine.length - newLastLine.length);
+  const newTo = { line: originalTo.line - (didRemoveHeader ? 1 : 0), ch: newToCh };
   const newFromCh = didRemoveHeader
     ? 0
-    : selectionRange.from.ch - (oldFirstLine.length - newFirstLine.length);
-  const newFrom = { line: selectionRange.from.line, ch: newFromCh };
-  editor.setSelection(newFrom, newTo);
+    : originalFrom.ch - (oldFirstLine.length - newFirstLine.length);
+  const newFrom = { line: originalFrom.line, ch: newFromCh };
+  const { newAnchor, newHead } = getNewAnchorAndHead(originalCursorPositions, newFrom, newTo);
+  editor.setSelection(newAnchor, newHead);
 }
