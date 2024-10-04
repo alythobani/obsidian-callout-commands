@@ -1,25 +1,13 @@
 import { Command } from "obsidian";
-import {
-  makeCalloutSelectionCheckCallback,
-  makeCurrentLineCheckCallback,
-  makeSelectionCheckCallback,
-} from "./editorCheckCallback";
+import { makeCalloutSelectionCheckCallback } from "./editorCheckCallback";
 import { removeCalloutFromSelectedLines } from "./removeCallout";
-import {
-  wrapCurrentLineInQuoteCallout,
-  wrapSelectedLinesInQuoteCallout,
-} from "./wrapLinesInCallout";
+import { wrapCurrentLineOrSelectedLinesInQuoteCallout } from "./wrapLinesInCallout";
 
 export const allCommands: Command[] = [
   {
-    id: "wrap-selected-lines-in-quote-callout",
-    name: "Wrap Selected Lines in Quote Callout",
-    editorCheckCallback: makeSelectionCheckCallback(wrapSelectedLinesInQuoteCallout),
-  },
-  {
-    id: "wrap-current-line-in-quote-callout",
-    name: "Wrap Current Line in Quote Callout",
-    editorCheckCallback: makeCurrentLineCheckCallback(wrapCurrentLineInQuoteCallout),
+    id: "wrap-current-line-or-selected-lines-in-quote-callout",
+    name: "Wrap Current Line or Selected Lines in Quote Callout",
+    editorCallback: wrapCurrentLineOrSelectedLinesInQuoteCallout,
   },
   {
     id: "remove-callout-from-selected-lines",

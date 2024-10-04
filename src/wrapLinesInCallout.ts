@@ -2,19 +2,27 @@ import { Editor, EditorRange } from "obsidian";
 import { DEFAULT_QUOTE_CALLOUT_HEADER } from "./calloutHeaders";
 import { getSelectedLinesRangeAndText, getSelectionRange } from "./selectionHelpers";
 
+export function wrapCurrentLineOrSelectedLinesInQuoteCallout(editor: Editor): void {
+  if (editor.somethingSelected()) {
+    wrapSelectedLinesInQuoteCallout(editor);
+    return;
+  }
+  wrapCurrentLineInQuoteCallout(editor);
+}
+
 /**
  * Wraps the selected lines in a quote callout.
  */
-export function wrapSelectedLinesInQuoteCallout(editor: Editor): void {
+function wrapSelectedLinesInQuoteCallout(editor: Editor): void {
   const selectionRange = getSelectionRange(editor);
   const { range: selectedLinesRange, text } = getSelectedLinesRangeAndText(editor);
   const prependedLines = text.replace(/^/gm, "> ");
   const newText = `${DEFAULT_QUOTE_CALLOUT_HEADER}\n${prependedLines}`;
   editor.replaceRange(newText, selectedLinesRange.from, selectedLinesRange.to);
-  setSelectionAfterWrappingLinesWithCallout(editor, selectionRange);
+  setSelectionAfterWrappingLinesInCallout(editor, selectionRange);
 }
 
-function setSelectionAfterWrappingLinesWithCallout(
+function setSelectionAfterWrappingLinesInCallout(
   editor: Editor,
   originalSelectionRange: EditorRange
 ): void {
@@ -24,10 +32,10 @@ function setSelectionAfterWrappingLinesWithCallout(
   editor.setSelection(newFrom, newTo);
 }
 
-export function wrapCurrentLineInQuoteCallout(editor: Editor): void {
+function wrapCurrentLineInQuoteCallout(editor: Editor): void {
   const { line, ch } = editor.getCursor();
   const lineText = editor.getLine(line);
   const newText = `${DEFAULT_QUOTE_CALLOUT_HEADER}\n> ${lineText}`;
   editor.replaceRange(newText, { line, ch: 0 }, { line, ch: lineText.length });
-  editor.setSelection({ line, ch: 0 }, { line: line + 1, ch: ch + 2 });
+  editor.setSelection({ line, ch: 0 }, { line: line + 1, ch: ch + 3 });
 }
