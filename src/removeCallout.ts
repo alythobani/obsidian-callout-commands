@@ -6,6 +6,9 @@ import { getSelectedLinesRangeAndText, getSelectionRange } from "./selectionHelp
 /**
  * Removes the callout from the selected lines. Retains the title if it's not the default header for
  * the given callout, else removes the entire header line.
+ *
+ * TODO: if there's a custom title, make it a heading when retaining it. This will make it easier to
+ * convert the text back to a callout with the custom title if desired.
  */
 export function removeCalloutFromSelectedLines(editor: Editor): void {
   const selectionRange = getSelectionRange(editor); // Actual selection range
@@ -80,6 +83,13 @@ function removeCallout({
   });
 }
 
+/**
+ * Sets the selection after removing a callout from the selected lines. This function is necessary
+ * because the length and content of the lines may have changed, so the selection must be adjusted
+ * accordingly.
+ *
+ * TODO: correctly set anchor vs head based on the direction of the selection
+ */
 function setSelectionAfterRemovingCallout({
   adjustedTextLines,
   selectionRange,
