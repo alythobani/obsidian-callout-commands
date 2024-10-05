@@ -21,12 +21,9 @@ export function removeCalloutFromSelectedLines(editor: Editor): void {
   const textLines = text.split("\n") as [string, ...string[]]; // `split` is guaranteed to return at least one element
   const [oldFirstLine, oldLastLine] = [textLines[0], getLastElement(textLines)]; // Save now to compare with post-edit lines
   if ([BASE_QUOTE_CALLOUT_HEADER, DEFAULT_QUOTE_CALLOUT_HEADER].includes(oldFirstLine)) {
-    const linesWithoutHeader = textLines.slice(1);
-    const unquotedLines = linesWithoutHeader.map((line) => line.replace(/^> /, ""));
-    removeCallout({
+    removeCalloutWithDefaultTitle({
+      textLines,
       editor,
-      adjustedTextLines: unquotedLines,
-      didRemoveHeader: true,
       originalCursorPositions,
       selectedLinesRange,
       oldFirstLine,
@@ -34,10 +31,64 @@ export function removeCalloutFromSelectedLines(editor: Editor): void {
     });
     return;
   }
+  removeCalloutWithCustomTitle({
+    oldFirstLine,
+    textLines,
+    editor,
+    originalCursorPositions,
+    selectedLinesRange,
+    oldLastLine,
+  });
+}
+
+function removeCalloutWithDefaultTitle({
+  textLines,
+  editor,
+  originalCursorPositions,
+  selectedLinesRange,
+  oldFirstLine,
+  oldLastLine,
+}: {
+  textLines: [string, ...string[]];
+  editor: Editor;
+  originalCursorPositions: CursorPositions;
+  selectedLinesRange: EditorRange;
+  oldFirstLine: string;
+  oldLastLine: string;
+}): void {
+  const linesWithoutHeader = textLines.slice(1);
+  const unquotedLines = linesWithoutHeader.map((line) => line.replace(/^> /, ""));
+  replaceCalloutLinesAndAdjustSelection({
+    editor,
+    adjustedTextLines: unquotedLines,
+    didRemoveHeader: true,
+    originalCursorPositions,
+    selectedLinesRange,
+    oldFirstLine,
+    oldLastLine,
+  });
+  return;
+}
+
+function removeCalloutWithCustomTitle({
+  oldFirstLine,
+  textLines,
+  editor,
+  originalCursorPositions,
+  selectedLinesRange,
+  oldLastLine,
+}: {
+  oldFirstLine: string;
+  textLines: [string, ...string[]];
+  editor: Editor;
+  originalCursorPositions: CursorPositions;
+  selectedLinesRange: EditorRange;
+  oldLastLine: string;
+}): void {
   const customCalloutTitle = oldFirstLine.replace(/^> \[!\w+\] /, "");
   const unquotedLines = textLines.slice(1).map((line) => line.replace(/^> /, ""));
   const adjustedTextLines = [customCalloutTitle, ...unquotedLines];
-  removeCallout({
+  replaceCalloutLinesAndAdjustSelection({
     editor,
     adjustedTextLines,
     didRemoveHeader: false,
@@ -48,7 +99,11 @@ export function removeCalloutFromSelectedLines(editor: Editor): void {
   });
 }
 
-function removeCallout({
+/**
+ * Replaces the selected lines with the given text lines, adjusting the selection after to match the
+ * original selection's relative position.
+ */
+function replaceCalloutLinesAndAdjustSelection({
   editor,
   adjustedTextLines,
   didRemoveHeader,
@@ -78,7 +133,7 @@ function removeCallout({
   editor.replaceRange(newText, selectedLinesRange.from, selectedLinesRange.to);
 
   // Set the selection to the same relative position as before, but with the new text
-  setSelectionAfterRemovingCallout({
+  adjustSelectionAfterReplacingCallout({
     adjustedTextLines,
     originalCursorPositions,
     oldLastLine,
@@ -89,11 +144,10 @@ function removeCallout({
 }
 
 /**
- * Sets the selection after removing a callout from the selected lines. This function is necessary
- * because the length and content of the lines may have changed, so the selection must be adjusted
- * accordingly.
+ * Sets the selection after removing the callout from the selected lines, back to the original
+ * selection's relative position.
  */
-function setSelectionAfterRemovingCallout({
+function adjustSelectionAfterReplacingCallout({
   adjustedTextLines,
   originalCursorPositions,
   oldLastLine,
