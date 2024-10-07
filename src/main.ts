@@ -1,5 +1,5 @@
 import { Plugin } from "obsidian";
-import { allCommands } from "./commands";
+import { allCommands } from "./commands/allCommands";
 
 export default class CalloutCommands extends Plugin {
   onload(): void {

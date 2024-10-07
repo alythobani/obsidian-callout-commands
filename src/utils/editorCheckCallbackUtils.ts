@@ -1,5 +1,5 @@
 import { Command, Editor } from "obsidian";
-import { getSelectedLinesRangeAndText } from "./selectionHelpers";
+import { getSelectedLinesRangeAndText } from "./selectionUtils";
 
 const CALLOUT_HEADER_REGEX = /^> \[!\w+\]/;
 

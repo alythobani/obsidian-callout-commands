@@ -1,13 +1,17 @@
 import { Editor, EditorRange } from "obsidian";
-import { getLastElement, isNonEmptyArray } from "./arrayUtils";
-import { getEffectiveQuoteCalloutTitle, isCustomTitle, makeH6Line } from "./calloutHeaders";
+import { getLastElement, isNonEmptyArray } from "../utils/arrayUtils";
+import {
+  getEffectiveQuoteCalloutTitle,
+  isCustomTitle,
+  makeH6Line,
+} from "../utils/calloutTitleUtils";
 import {
   CursorPositions,
   getCursorPositions,
   getNewAnchorAndHead,
   getSelectedLinesRangeAndText,
-} from "./selectionHelpers";
-import { getTextLines } from "./stringUtils";
+} from "../utils/selectionUtils";
+import { getTextLines } from "../utils/stringUtils";
 
 /**
  * Removes the callout from the selected lines. Retains the title if it's not the default header for

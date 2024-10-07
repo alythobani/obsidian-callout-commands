@@ -1,18 +1,18 @@
 import { Editor, EditorRange } from "obsidian";
-import { NonEmptyStringArray } from "./arrayUtils";
+import { NonEmptyStringArray } from "../utils/arrayUtils";
 import {
   DEFAULT_QUOTE_CALLOUT_HEADER,
   DEFAULT_QUOTE_CALLOUT_TITLE,
   getCustomHeadingTitleIfExists,
   makeQuoteCalloutHeader,
-} from "./calloutHeaders";
+} from "../utils/calloutTitleUtils";
 import {
   CursorPositions,
   getCursorPositions,
   getNewAnchorAndHead,
   getSelectedLinesRangeAndText,
-} from "./selectionHelpers";
-import { getTextLines } from "./stringUtils";
+} from "../utils/selectionUtils";
+import { getTextLines } from "../utils/stringUtils";
 
 export function wrapCurrentLineOrSelectedLinesInQuoteCallout(editor: Editor): void {
   if (editor.somethingSelected()) {

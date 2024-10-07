@@ -1,8 +1,13 @@
 import { Command } from "obsidian";
-import { makeCalloutSelectionCheckCallback } from "./editorCheckCallback";
+import { makeCalloutSelectionCheckCallback } from "../utils/editorCheckCallbackUtils";
 import { removeCalloutFromSelectedLines } from "./removeCallout";
 import { wrapCurrentLineOrSelectedLinesInQuoteCallout } from "./wrapLinesInCallout";
 
+/**
+ * All commands provided by this plugin.
+ *
+ * TODO:
+ */
 export const allCommands: Command[] = [
   {
     id: "wrap-current-line-or-selected-lines-in-quote-callout",
