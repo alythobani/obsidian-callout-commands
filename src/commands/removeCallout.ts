@@ -175,7 +175,10 @@ function adjustSelectionAfterReplacingCallout({
   const { from: originalFrom, to: originalTo } = originalCursorPositions;
   const newFirstLine = adjustedTextLines[0];
   const newLastLine = getLastElement(adjustedTextLines);
-  const newToCh = originalTo.ch - (oldLastLine.length - newLastLine.length);
+  const newToCh = Math.min(
+    originalTo.ch - (oldLastLine.length - newLastLine.length),
+    newLastLine.length
+  );
   const newTo = { line: originalTo.line - (didRemoveHeader ? 1 : 0), ch: newToCh };
   const newFromCh = didRemoveHeader
     ? 0

@@ -6,7 +6,8 @@ import { wrapCurrentLineOrSelectedLinesInQuoteCallout } from "./wrapLinesInCallo
 /**
  * All commands provided by this plugin.
  *
- * TODO:
+ * TODO: Add a command for each available callout (builtin or supplied by Callout Manager if
+ * installed).
  */
 export const allCommands: Command[] = [
   {

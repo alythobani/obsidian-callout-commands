@@ -104,29 +104,49 @@ function setSelectionAfterWrappingLinesInCallout({
   calloutHeader: string;
   calloutBodyLines: string[];
 }): void {
+  const newRange = getNewSelectionRangeAfterWrappingLinesInCallout({
+    originalCursorPositions,
+    originalSelectedLines,
+    calloutHeader,
+    calloutBodyLines,
+  });
+  setSelectionInCorrectDirection(editor, originalCursorPositions, newRange);
+}
+
+function getNewSelectionRangeAfterWrappingLinesInCallout({
+  originalCursorPositions,
+  originalSelectedLines,
+  calloutHeader,
+  calloutBodyLines,
+}: {
+  originalCursorPositions: CursorPositions;
+  originalSelectedLines: NonEmptyStringArray;
+  calloutHeader: string;
+  calloutBodyLines: string[];
+}): EditorRange {
   const { from: originalFrom, to: originalTo } = originalCursorPositions;
-  const newToCh = originalTo.ch + 2; // Add 2 for the "> " prefix
+
+  // Add 2 characters for the "> " prefix
+  const lastBodyLineLength = calloutBodyLines[calloutBodyLines.length - 1]?.length ?? 0;
+  const newToCh = Math.min(originalTo.ch + 2, lastBodyLineLength - 1);
+
   const didAddHeaderLine = originalSelectedLines.length === calloutBodyLines.length;
   if (didAddHeaderLine) {
     const newFrom = { line: originalFrom.line, ch: 0 };
-    const newTo = { line: originalTo.line + 1, ch: originalTo.ch + 2 };
-    setSelection(editor, originalCursorPositions, { from: newFrom, to: newTo });
-    return;
+    const newTo = { line: originalTo.line + 1, ch: newToCh };
+    return { from: newFrom, to: newTo };
   }
+
   // We turned the existing first line from a heading into a callout header
   const originalFirstLine = originalSelectedLines[0];
   const rawNewFromCh = originalFrom.ch - (originalFirstLine.length - calloutHeader.length);
   const newFromCh = Math.clamp(rawNewFromCh, 0, calloutHeader.length);
   const newFrom = { line: originalFrom.line, ch: newFromCh };
   const newTo = { line: originalTo.line, ch: newToCh };
-  const { newAnchor, newHead } = getNewAnchorAndHead(originalCursorPositions, {
-    from: newFrom,
-    to: newTo,
-  });
-  editor.setSelection(newAnchor, newHead);
+  return { from: newFrom, to: newTo };
 }
 
-function setSelection(
+function setSelectionInCorrectDirection(
   editor: Editor,
   originalCursorPositions: CursorPositions,
   newRange: EditorRange
@@ -143,5 +163,8 @@ function wrapCurrentLineInQuoteCallout(editor: Editor): void {
   const lineText = editor.getLine(line);
   const newText = `${DEFAULT_QUOTE_CALLOUT_HEADER}\n> ${lineText}`;
   editor.replaceRange(newText, { line, ch: 0 }, { line, ch: lineText.length });
-  editor.setSelection({ line, ch: 0 }, { line: line + 1, ch: ch + 3 });
+  const newFrom = { line, ch: 0 };
+  const newToCh = Math.min(ch + 3, lineText.length + 2);
+  const newTo = { line: line + 1, ch: newToCh };
+  editor.setSelection(newFrom, newTo);
 }
