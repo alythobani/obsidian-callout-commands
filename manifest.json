@@ -1,9 +1,9 @@
 {
-  "id": "obsidian-callout-commands",
-  "name": "Callout Commands",
-  "version": "0.0.1",
-  "minAppVersion": "0.12.0",
-  "description": "An Obsidian plugin providing many commands for inserting/changing/removing callouts.",
+  "id": "obsidian-callout-toggle-commands",
+  "name": "Callout Toggle Commands",
+  "version": "1.0.0",
+  "minAppVersion": "1.6.7",
+  "description": "An Obsidian plugin providing individual commands for adding and removing callout wrappers to/from selected lines of text.",
   "author": "Aly Thobani",
   "authorUrl": "https://github.com/alythobani/",
   "isDesktopOnly": false
