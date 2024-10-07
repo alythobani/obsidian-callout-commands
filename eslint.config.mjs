@@ -28,6 +28,8 @@ export default tseslint.config(
       ],
       "@typescript-eslint/explicit-function-return-type": "error",
       "@typescript-eslint/no-non-null-assertion": "error",
+      "@typescript-eslint/strict-boolean-expressions": "error",
+      "object-shorthand": "error",
     },
   }
 );

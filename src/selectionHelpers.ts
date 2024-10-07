@@ -52,9 +52,9 @@ export function isHeadBeforeAnchor({
 
 export function getNewAnchorAndHead(
   originalCursorPositions: CursorPositions,
-  newFrom: EditorPosition,
-  newTo: EditorPosition
+  newRange: EditorRange
 ): { newAnchor: EditorPosition; newHead: EditorPosition } {
+  const { from: newFrom, to: newTo } = newRange;
   return isHeadBeforeAnchor(originalCursorPositions)
     ? { newAnchor: newTo, newHead: newFrom }
     : { newAnchor: newFrom, newHead: newTo };
