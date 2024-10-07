@@ -1,23 +1,26 @@
 import { Command } from "obsidian";
+import { BUILTIN_CALLOUT_KEYWORDS } from "../callouts/builtinCallouts";
 import { makeCalloutSelectionCheckCallback } from "../utils/editorCheckCallbackUtils";
+import { toTitleCaseWord } from "../utils/stringUtils";
 import { removeCalloutFromSelectedLines } from "./removeCallout";
-import { wrapCurrentLineOrSelectedLinesInQuoteCallout } from "./wrapLinesInCallout";
+import { makeWrapCurrentLineOrSelectedLinesInCalloutCommand } from "./wrapLinesInCallout";
 
-/**
- * All commands provided by this plugin.
- *
- * TODO: Add a command for each available callout (builtin or supplied by Callout Manager if
- * installed).
- */
+const allBuiltinWrapCommands = BUILTIN_CALLOUT_KEYWORDS.map((calloutKeyword) => {
+  const capitalizedKeyword = toTitleCaseWord(calloutKeyword);
+  return {
+    id: `wrap-current-line-or-selected-lines-in-${calloutKeyword}-callout`,
+    name: `Wrap Current Line or Selected Lines in ${capitalizedKeyword} Callout`,
+    editorCallback: makeWrapCurrentLineOrSelectedLinesInCalloutCommand(calloutKeyword),
+  } as const;
+});
+
+const removeCalloutFromSelectedLinesCommand: Command = {
+  id: "remove-callout-from-selected-lines",
+  name: "Remove Callout from Selected Lines",
+  editorCheckCallback: makeCalloutSelectionCheckCallback(removeCalloutFromSelectedLines),
+};
+
 export const allCommands: Command[] = [
-  {
-    id: "wrap-current-line-or-selected-lines-in-quote-callout",
-    name: "Wrap Current Line or Selected Lines in Quote Callout",
-    editorCallback: wrapCurrentLineOrSelectedLinesInQuoteCallout,
-  },
-  {
-    id: "remove-callout-from-selected-lines",
-    name: "Remove Callout from Selected Lines",
-    editorCheckCallback: makeCalloutSelectionCheckCallback(removeCalloutFromSelectedLines),
-  },
+  ...allBuiltinWrapCommands,
+  removeCalloutFromSelectedLinesCommand,
 ];

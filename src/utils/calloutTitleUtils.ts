@@ -1,14 +1,32 @@
 import { getTrimmedFirstCapturingGroupIfExists } from "./regexUtils";
+import { toTitleCaseWord } from "./stringUtils";
 
-export const BASE_QUOTE_CALLOUT_HEADER = "> [!quote]";
-export const DEFAULT_QUOTE_CALLOUT_TITLE = "Quote";
-export const DEFAULT_QUOTE_CALLOUT_HEADER = `${BASE_QUOTE_CALLOUT_HEADER} ${DEFAULT_QUOTE_CALLOUT_TITLE}`;
-
+const CALLOUT_KEYWORD_REGEX = /^> \[!(\w+)\]/;
 const CALLOUT_TITLE_REGEX = /^> \[!\w+\] (.+)/;
 const HEADING_TITLE_REGEX = /^#+ (.+)/;
 
-export function makeQuoteCalloutHeader(title: string): string {
-  return `${BASE_QUOTE_CALLOUT_HEADER} ${title}`;
+export function makeCalloutHeader({
+  calloutKeyword,
+  title,
+}: {
+  calloutKeyword: string;
+  title: string;
+}): string {
+  const baseCalloutHeader = makeBaseCalloutHeader(calloutKeyword);
+  return `${baseCalloutHeader} ${title}`;
+}
+
+function makeBaseCalloutHeader(calloutKeyword: string): string {
+  return `> [!${calloutKeyword}]`;
+}
+
+export function getDefaultCalloutTitle(calloutKeyword: string): string {
+  return toTitleCaseWord(calloutKeyword);
+}
+
+export function makeDefaultCalloutHeader(calloutKeyword: string): string {
+  const defaultTitle = getDefaultCalloutTitle(calloutKeyword);
+  return makeCalloutHeader({ calloutKeyword, title: defaultTitle });
 }
 
 export function makeH6Line(title: string): string {
@@ -16,25 +34,47 @@ export function makeH6Line(title: string): string {
 }
 
 /**
- * Gets the effective title of a quote callout, which may either be explicitly set, or otherwise
- * inferred as the default title. Also returns the default title if the explicit title is an empty
- * or whitespace-only string.
+ * Parses the callout keyword and effective title from the full text of a callout.
  *
- * @param fullCalloutText The full text of the quote callout (both the header and the body).
+ * @param fullCalloutText The full text of the callout (both the header and the body).
  */
-export function getEffectiveQuoteCalloutTitle(fullCalloutText: string): string {
+export function getCalloutKeywordAndEffectiveTitle(fullCalloutText: string): {
+  calloutKeyword: string;
+  effectiveTitle: string;
+} {
+  const calloutKeyword = getCalloutKeyword(fullCalloutText);
+  const effectiveTitle = getCalloutEffectiveTitle(calloutKeyword, fullCalloutText);
+  return { calloutKeyword, effectiveTitle };
+}
+
+function getCalloutKeyword(fullCalloutText: string): string {
+  const maybeCalloutKeyword = getTrimmedCalloutKeywordIfExists(fullCalloutText);
+  if (maybeCalloutKeyword === undefined) {
+    throw new Error("Callout keyword not found in callout text.");
+  }
+  return maybeCalloutKeyword;
+}
+
+function getTrimmedCalloutKeywordIfExists(fullCalloutText: string): string | undefined {
+  return getTrimmedFirstCapturingGroupIfExists(CALLOUT_KEYWORD_REGEX, fullCalloutText);
+}
+
+/**
+ * Gets the effective title of a callout, which may either be an explicitly set non-empty (and not
+ * only whitespace) title, or otherwise inferred as the default title.
+ */
+function getCalloutEffectiveTitle(calloutKeyword: string, fullCalloutText: string): string {
   const maybeExplicitTitle = getTrimmedCalloutTitleIfExists(fullCalloutText);
   if (maybeExplicitTitle === "" || maybeExplicitTitle === undefined) {
-    return DEFAULT_QUOTE_CALLOUT_TITLE;
+    return getDefaultCalloutTitle(calloutKeyword);
   }
   return maybeExplicitTitle;
 }
 
 /**
- * Gets the explicit title (trimmed of surrounding whitespace) of a quote callout, if one is
- * present.
+ * Gets the explicit title (trimmed of surrounding whitespace) of a callout, if one is present.
  *
- * @param fullCalloutText The full text of the quote callout (both the header and the body).
+ * @param fullCalloutText The full text of the callout (both the header and the body).
  */
 function getTrimmedCalloutTitleIfExists(fullCalloutText: string): string | undefined {
   return getTrimmedFirstCapturingGroupIfExists(CALLOUT_TITLE_REGEX, fullCalloutText);
@@ -65,10 +105,17 @@ function getTrimmedHeadingTitleIfExists(firstSelectedLine: string): string | und
 }
 
 /**
- * Determines whether the effective title of a quote callout is a custom title or the default title.
+ * Determines whether the effective title of a callout is a custom title or the default title.
  *
- * @param effectiveTitle The effective title of the quote callout.
+ * @param effectiveTitle The effective title of the callout.
  */
-export function isCustomTitle(effectiveTitle: string): boolean {
-  return effectiveTitle !== DEFAULT_QUOTE_CALLOUT_TITLE;
+export function isCustomTitle({
+  calloutKeyword,
+  effectiveTitle,
+}: {
+  calloutKeyword: string;
+  effectiveTitle: string;
+}): boolean {
+  const defaultTitle = getDefaultCalloutTitle(calloutKeyword);
+  return effectiveTitle !== defaultTitle;
 }

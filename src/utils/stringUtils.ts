@@ -6,3 +6,9 @@
 export function getTextLines(text: string): [string, ...string[]] {
   return text.split("\n") as [string, ...string[]];
 }
+
+export function toTitleCaseWord(word: string): string {
+  const firstLetter = word.charAt(0).toUpperCase();
+  const rest = word.slice(1).toLowerCase();
+  return `${firstLetter}${rest}`;
+}

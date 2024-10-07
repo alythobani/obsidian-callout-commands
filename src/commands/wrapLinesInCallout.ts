@@ -1,10 +1,11 @@
 import { Editor, EditorRange } from "obsidian";
+import { BuiltinCalloutKeyword } from "../callouts/builtinCallouts";
 import { NonEmptyStringArray } from "../utils/arrayUtils";
 import {
-  DEFAULT_QUOTE_CALLOUT_HEADER,
-  DEFAULT_QUOTE_CALLOUT_TITLE,
   getCustomHeadingTitleIfExists,
-  makeQuoteCalloutHeader,
+  getDefaultCalloutTitle,
+  makeCalloutHeader,
+  makeDefaultCalloutHeader,
 } from "../utils/calloutTitleUtils";
 import {
   CursorPositions,
@@ -14,24 +15,36 @@ import {
 } from "../utils/selectionUtils";
 import { getTextLines } from "../utils/stringUtils";
 
-export function wrapCurrentLineOrSelectedLinesInQuoteCallout(editor: Editor): void {
+export function makeWrapCurrentLineOrSelectedLinesInCalloutCommand(
+  calloutKeyword: BuiltinCalloutKeyword
+): (editor: Editor) => void {
+  return (editor: Editor) => {
+    wrapCurrentLineOrSelectedLinesInCallout(editor, calloutKeyword);
+  };
+}
+
+function wrapCurrentLineOrSelectedLinesInCallout(
+  editor: Editor,
+  calloutKeyword: BuiltinCalloutKeyword
+): void {
   if (editor.somethingSelected()) {
-    wrapSelectedLinesInQuoteCallout(editor);
+    wrapSelectedLinesInCallout(editor, calloutKeyword);
     return;
   }
-  wrapCurrentLineInQuoteCallout(editor);
+  wrapCurrentLineInCallout(editor, calloutKeyword);
 }
 
 /**
- * Wraps the selected lines in a quote callout.
+ * Wraps the selected lines in a callout.
  */
-function wrapSelectedLinesInQuoteCallout(editor: Editor): void {
+function wrapSelectedLinesInCallout(editor: Editor, calloutKeyword: BuiltinCalloutKeyword): void {
   const originalCursorPositions = getCursorPositions(editor); // Save cursor positions before editing
   const { range: selectedLinesRange, text: selectedText } = getSelectedLinesRangeAndText(editor);
   const selectedLines = getTextLines(selectedText);
-  const { title, rawBodyLines } = getCalloutTitleAndRawBodyLines(selectedLines);
-  wrapLinesInQuoteCallout({
+  const { title, rawBodyLines } = getCalloutTitleAndRawBodyLines(selectedLines, calloutKeyword);
+  wrapLinesInCallout({
     editor,
+    calloutKeyword,
     originalCursorPositions,
     selectedLines,
     selectedLinesRange,
@@ -46,20 +59,25 @@ function wrapSelectedLinesInQuoteCallout(editor: Editor): void {
  * as the body. Otherwise, the default callout title is used, and all the selected lines are used as
  * the body.
  */
-function getCalloutTitleAndRawBodyLines(selectedLines: NonEmptyStringArray): {
-  title: string;
-  rawBodyLines: string[];
-} {
+function getCalloutTitleAndRawBodyLines(
+  selectedLines: NonEmptyStringArray,
+  calloutKeyword: BuiltinCalloutKeyword
+): { title: string; rawBodyLines: string[] } {
   const [firstSelectedLine, ...restSelectedLines] = selectedLines;
   const maybeHeadingTitle = getCustomHeadingTitleIfExists({ firstSelectedLine });
   if (maybeHeadingTitle === undefined) {
-    return { title: DEFAULT_QUOTE_CALLOUT_TITLE, rawBodyLines: selectedLines };
+    const defaultCalloutTitle = getDefaultCalloutTitle(calloutKeyword);
+    return { title: defaultCalloutTitle, rawBodyLines: selectedLines };
   }
   return { title: maybeHeadingTitle, rawBodyLines: restSelectedLines };
 }
 
-function wrapLinesInQuoteCallout({
+/**
+ * Wraps the selected lines in a callout.
+ */
+function wrapLinesInCallout({
   editor,
+  calloutKeyword,
   originalCursorPositions,
   selectedLines,
   selectedLinesRange,
@@ -67,6 +85,7 @@ function wrapLinesInQuoteCallout({
   rawBodyLines,
 }: {
   editor: Editor;
+  calloutKeyword: BuiltinCalloutKeyword;
   originalCursorPositions: CursorPositions;
   selectedLines: NonEmptyStringArray;
   selectedLinesRange: EditorRange;
@@ -75,7 +94,7 @@ function wrapLinesInQuoteCallout({
 }): void {
   const calloutBodyLines = rawBodyLines.map((line) => `> ${line}`);
   const calloutBody = calloutBodyLines.join("\n");
-  const calloutHeader = makeQuoteCalloutHeader(title);
+  const calloutHeader = makeCalloutHeader({ calloutKeyword, title });
   const newText = `${calloutHeader}\n${calloutBody}`;
   editor.replaceRange(newText, selectedLinesRange.from, selectedLinesRange.to);
 
@@ -156,12 +175,14 @@ function setSelectionInCorrectDirection(
 }
 
 /**
- * Wraps the cursor's current line in a quote callout.
+ * Wraps the cursor's current line in a callout.
  */
-function wrapCurrentLineInQuoteCallout(editor: Editor): void {
+function wrapCurrentLineInCallout(editor: Editor, calloutKeyword: BuiltinCalloutKeyword): void {
   const { line, ch } = editor.getCursor();
   const lineText = editor.getLine(line);
-  const newText = `${DEFAULT_QUOTE_CALLOUT_HEADER}\n> ${lineText}`;
+  const calloutHeader = makeDefaultCalloutHeader(calloutKeyword);
+  const prependedLine = `> ${lineText}`;
+  const newText = `${calloutHeader}\n${prependedLine}`;
   editor.replaceRange(newText, { line, ch: 0 }, { line, ch: lineText.length });
   const newFrom = { line, ch: 0 };
   const newToCh = Math.min(ch + 3, lineText.length + 2);

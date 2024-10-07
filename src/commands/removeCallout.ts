@@ -1,7 +1,7 @@
 import { Editor, EditorRange } from "obsidian";
 import { getLastElement, isNonEmptyArray } from "../utils/arrayUtils";
 import {
-  getEffectiveQuoteCalloutTitle,
+  getCalloutKeywordAndEffectiveTitle,
   isCustomTitle,
   makeH6Line,
 } from "../utils/calloutTitleUtils";
@@ -22,8 +22,8 @@ export function removeCalloutFromSelectedLines(editor: Editor): void {
   const { range: selectedLinesRange, text } = getSelectedLinesRangeAndText(editor); // Full selected lines range and text
   const textLines = getTextLines(text);
   const [oldFirstLine, oldLastLine] = [textLines[0], getLastElement(textLines)]; // Save now to compare with post-edit lines
-  const effectiveCalloutTitle = getEffectiveQuoteCalloutTitle(text);
-  if (isCustomTitle(effectiveCalloutTitle)) {
+  const { calloutKeyword, effectiveTitle } = getCalloutKeywordAndEffectiveTitle(text);
+  if (isCustomTitle({ calloutKeyword, effectiveTitle })) {
     removeCalloutWithCustomTitle({
       oldFirstLine,
       textLines,
@@ -31,7 +31,7 @@ export function removeCalloutFromSelectedLines(editor: Editor): void {
       originalCursorPositions,
       selectedLinesRange,
       oldLastLine,
-      customTitle: effectiveCalloutTitle,
+      customTitle: effectiveTitle,
     });
     return;
   }
