@@ -1,18 +1,9 @@
 import { Command } from "obsidian";
-import { BUILTIN_CALLOUT_KEYWORDS } from "../callouts/builtinCallouts";
+import { CalloutID } from "obsidian-callout-manager";
 import { makeCalloutSelectionCheckCallback } from "../utils/editorCheckCallbackUtils";
 import { toTitleCaseWord } from "../utils/stringUtils";
 import { removeCalloutFromSelectedLines } from "./removeCallout";
 import { makeWrapCurrentLineOrSelectedLinesInCalloutCommand } from "./wrapLinesInCallout";
-
-const allBuiltinWrapCommands = BUILTIN_CALLOUT_KEYWORDS.map((calloutKeyword) => {
-  const capitalizedKeyword = toTitleCaseWord(calloutKeyword);
-  return {
-    id: `wrap-current-line-or-selected-lines-in-${calloutKeyword}-callout`,
-    name: `Wrap Current Line or Selected Lines in ${capitalizedKeyword} Callout`,
-    editorCallback: makeWrapCurrentLineOrSelectedLinesInCalloutCommand(calloutKeyword),
-  } as const;
-});
 
 const removeCalloutFromSelectedLinesCommand: Command = {
   id: "remove-callout-from-selected-lines",
@@ -20,7 +11,18 @@ const removeCalloutFromSelectedLinesCommand: Command = {
   editorCheckCallback: makeCalloutSelectionCheckCallback(removeCalloutFromSelectedLines),
 };
 
-export const allCommands: Command[] = [
-  ...allBuiltinWrapCommands,
-  removeCalloutFromSelectedLinesCommand,
-];
+function makeWrapCalloutCommand() {
+  return (calloutID: CalloutID): Command => {
+    const capitalizedKeyword = toTitleCaseWord(calloutID);
+    return {
+      id: `wrap-current-line-or-selected-lines-in-${calloutID}-callout`,
+      name: `Wrap Current Line or Selected Lines in ${capitalizedKeyword} Callout`,
+      editorCallback: makeWrapCurrentLineOrSelectedLinesInCalloutCommand(calloutID),
+    } as const;
+  };
+}
+
+export function getAllCommands(calloutIDs: readonly CalloutID[]): Command[] {
+  const wrapCommands = calloutIDs.map(makeWrapCalloutCommand());
+  return [...wrapCommands, removeCalloutFromSelectedLinesCommand];
+}

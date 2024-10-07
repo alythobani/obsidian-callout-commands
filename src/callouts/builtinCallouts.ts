@@ -5,7 +5,7 @@
  * https://help.obsidian.md/Editing+and+formatting/Callouts#Supported%20types
  */
 
-export const BUILTIN_CALLOUT_KEYWORDS = [
+export const BUILTIN_CALLOUT_IDS = [
   "note",
   "abstract",
   "info",
@@ -20,5 +20,3 @@ export const BUILTIN_CALLOUT_KEYWORDS = [
   "example",
   "quote",
 ] as const;
-
-export type BuiltinCalloutKeyword = (typeof BUILTIN_CALLOUT_KEYWORDS)[number];

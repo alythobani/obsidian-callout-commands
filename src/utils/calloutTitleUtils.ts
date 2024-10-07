@@ -1,32 +1,32 @@
 import { getTrimmedFirstCapturingGroupIfExists } from "./regexUtils";
 import { toTitleCaseWord } from "./stringUtils";
 
-const CALLOUT_KEYWORD_REGEX = /^> \[!(\w+)\]/;
+const CALLOUT_ID_REGEX = /^> \[!(\w+)\]/;
 const CALLOUT_TITLE_REGEX = /^> \[!\w+\] (.+)/;
 const HEADING_TITLE_REGEX = /^#+ (.+)/;
 
 export function makeCalloutHeader({
-  calloutKeyword,
+  calloutID,
   title,
 }: {
-  calloutKeyword: string;
+  calloutID: string;
   title: string;
 }): string {
-  const baseCalloutHeader = makeBaseCalloutHeader(calloutKeyword);
+  const baseCalloutHeader = makeBaseCalloutHeader(calloutID);
   return `${baseCalloutHeader} ${title}`;
 }
 
-function makeBaseCalloutHeader(calloutKeyword: string): string {
-  return `> [!${calloutKeyword}]`;
+function makeBaseCalloutHeader(calloutID: string): string {
+  return `> [!${calloutID}]`;
 }
 
-export function getDefaultCalloutTitle(calloutKeyword: string): string {
-  return toTitleCaseWord(calloutKeyword);
+export function getDefaultCalloutTitle(calloutID: string): string {
+  return toTitleCaseWord(calloutID);
 }
 
-export function makeDefaultCalloutHeader(calloutKeyword: string): string {
-  const defaultTitle = getDefaultCalloutTitle(calloutKeyword);
-  return makeCalloutHeader({ calloutKeyword, title: defaultTitle });
+export function makeDefaultCalloutHeader(calloutID: string): string {
+  const defaultTitle = getDefaultCalloutTitle(calloutID);
+  return makeCalloutHeader({ calloutID, title: defaultTitle });
 }
 
 export function makeH6Line(title: string): string {
@@ -34,39 +34,39 @@ export function makeH6Line(title: string): string {
 }
 
 /**
- * Parses the callout keyword and effective title from the full text of a callout.
+ * Parses the callout ID and effective title from the full text of a callout.
  *
  * @param fullCalloutText The full text of the callout (both the header and the body).
  */
-export function getCalloutKeywordAndEffectiveTitle(fullCalloutText: string): {
-  calloutKeyword: string;
+export function getCalloutIDAndEffectiveTitle(fullCalloutText: string): {
+  calloutID: string;
   effectiveTitle: string;
 } {
-  const calloutKeyword = getCalloutKeyword(fullCalloutText);
-  const effectiveTitle = getCalloutEffectiveTitle(calloutKeyword, fullCalloutText);
-  return { calloutKeyword, effectiveTitle };
+  const calloutID = getCalloutID(fullCalloutText);
+  const effectiveTitle = getCalloutEffectiveTitle(calloutID, fullCalloutText);
+  return { calloutID, effectiveTitle };
 }
 
-function getCalloutKeyword(fullCalloutText: string): string {
-  const maybeCalloutKeyword = getTrimmedCalloutKeywordIfExists(fullCalloutText);
-  if (maybeCalloutKeyword === undefined) {
-    throw new Error("Callout keyword not found in callout text.");
+function getCalloutID(fullCalloutText: string): string {
+  const maybeCalloutID = getTrimmedCalloutIDIfExists(fullCalloutText);
+  if (maybeCalloutID === undefined) {
+    throw new Error("Callout ID not found in callout text.");
   }
-  return maybeCalloutKeyword;
+  return maybeCalloutID;
 }
 
-function getTrimmedCalloutKeywordIfExists(fullCalloutText: string): string | undefined {
-  return getTrimmedFirstCapturingGroupIfExists(CALLOUT_KEYWORD_REGEX, fullCalloutText);
+function getTrimmedCalloutIDIfExists(fullCalloutText: string): string | undefined {
+  return getTrimmedFirstCapturingGroupIfExists(CALLOUT_ID_REGEX, fullCalloutText);
 }
 
 /**
  * Gets the effective title of a callout, which may either be an explicitly set non-empty (and not
  * only whitespace) title, or otherwise inferred as the default title.
  */
-function getCalloutEffectiveTitle(calloutKeyword: string, fullCalloutText: string): string {
+function getCalloutEffectiveTitle(calloutID: string, fullCalloutText: string): string {
   const maybeExplicitTitle = getTrimmedCalloutTitleIfExists(fullCalloutText);
   if (maybeExplicitTitle === "" || maybeExplicitTitle === undefined) {
-    return getDefaultCalloutTitle(calloutKeyword);
+    return getDefaultCalloutTitle(calloutID);
   }
   return maybeExplicitTitle;
 }
@@ -110,12 +110,12 @@ function getTrimmedHeadingTitleIfExists(firstSelectedLine: string): string | und
  * @param effectiveTitle The effective title of the callout.
  */
 export function isCustomTitle({
-  calloutKeyword,
+  calloutID,
   effectiveTitle,
 }: {
-  calloutKeyword: string;
+  calloutID: string;
   effectiveTitle: string;
 }): boolean {
-  const defaultTitle = getDefaultCalloutTitle(calloutKeyword);
+  const defaultTitle = getDefaultCalloutTitle(calloutID);
   return effectiveTitle !== defaultTitle;
 }

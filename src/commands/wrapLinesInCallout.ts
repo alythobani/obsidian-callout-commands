@@ -1,5 +1,5 @@
 import { Editor, EditorRange } from "obsidian";
-import { BuiltinCalloutKeyword } from "../callouts/builtinCallouts";
+import { CalloutID } from "obsidian-callout-manager";
 import { NonEmptyStringArray } from "../utils/arrayUtils";
 import {
   getCustomHeadingTitleIfExists,
@@ -16,35 +16,32 @@ import {
 import { getTextLines } from "../utils/stringUtils";
 
 export function makeWrapCurrentLineOrSelectedLinesInCalloutCommand(
-  calloutKeyword: BuiltinCalloutKeyword
+  calloutID: CalloutID
 ): (editor: Editor) => void {
   return (editor: Editor) => {
-    wrapCurrentLineOrSelectedLinesInCallout(editor, calloutKeyword);
+    wrapCurrentLineOrSelectedLinesInCallout(editor, calloutID);
   };
 }
 
-function wrapCurrentLineOrSelectedLinesInCallout(
-  editor: Editor,
-  calloutKeyword: BuiltinCalloutKeyword
-): void {
+function wrapCurrentLineOrSelectedLinesInCallout(editor: Editor, calloutID: CalloutID): void {
   if (editor.somethingSelected()) {
-    wrapSelectedLinesInCallout(editor, calloutKeyword);
+    wrapSelectedLinesInCallout(editor, calloutID);
     return;
   }
-  wrapCurrentLineInCallout(editor, calloutKeyword);
+  wrapCurrentLineInCallout(editor, calloutID);
 }
 
 /**
  * Wraps the selected lines in a callout.
  */
-function wrapSelectedLinesInCallout(editor: Editor, calloutKeyword: BuiltinCalloutKeyword): void {
+function wrapSelectedLinesInCallout(editor: Editor, calloutID: CalloutID): void {
   const originalCursorPositions = getCursorPositions(editor); // Save cursor positions before editing
   const { range: selectedLinesRange, text: selectedText } = getSelectedLinesRangeAndText(editor);
   const selectedLines = getTextLines(selectedText);
-  const { title, rawBodyLines } = getCalloutTitleAndRawBodyLines(selectedLines, calloutKeyword);
+  const { title, rawBodyLines } = getCalloutTitleAndRawBodyLines(selectedLines, calloutID);
   wrapLinesInCallout({
     editor,
-    calloutKeyword,
+    calloutID,
     originalCursorPositions,
     selectedLines,
     selectedLinesRange,
@@ -61,12 +58,12 @@ function wrapSelectedLinesInCallout(editor: Editor, calloutKeyword: BuiltinCallo
  */
 function getCalloutTitleAndRawBodyLines(
   selectedLines: NonEmptyStringArray,
-  calloutKeyword: BuiltinCalloutKeyword
+  calloutID: CalloutID
 ): { title: string; rawBodyLines: string[] } {
   const [firstSelectedLine, ...restSelectedLines] = selectedLines;
   const maybeHeadingTitle = getCustomHeadingTitleIfExists({ firstSelectedLine });
   if (maybeHeadingTitle === undefined) {
-    const defaultCalloutTitle = getDefaultCalloutTitle(calloutKeyword);
+    const defaultCalloutTitle = getDefaultCalloutTitle(calloutID);
     return { title: defaultCalloutTitle, rawBodyLines: selectedLines };
   }
   return { title: maybeHeadingTitle, rawBodyLines: restSelectedLines };
@@ -77,7 +74,7 @@ function getCalloutTitleAndRawBodyLines(
  */
 function wrapLinesInCallout({
   editor,
-  calloutKeyword,
+  calloutID,
   originalCursorPositions,
   selectedLines,
   selectedLinesRange,
@@ -85,7 +82,7 @@ function wrapLinesInCallout({
   rawBodyLines,
 }: {
   editor: Editor;
-  calloutKeyword: BuiltinCalloutKeyword;
+  calloutID: CalloutID;
   originalCursorPositions: CursorPositions;
   selectedLines: NonEmptyStringArray;
   selectedLinesRange: EditorRange;
@@ -94,7 +91,7 @@ function wrapLinesInCallout({
 }): void {
   const calloutBodyLines = rawBodyLines.map((line) => `> ${line}`);
   const calloutBody = calloutBodyLines.join("\n");
-  const calloutHeader = makeCalloutHeader({ calloutKeyword, title });
+  const calloutHeader = makeCalloutHeader({ calloutID, title });
   const newText = `${calloutHeader}\n${calloutBody}`;
   editor.replaceRange(newText, selectedLinesRange.from, selectedLinesRange.to);
 
@@ -177,10 +174,10 @@ function setSelectionInCorrectDirection(
 /**
  * Wraps the cursor's current line in a callout.
  */
-function wrapCurrentLineInCallout(editor: Editor, calloutKeyword: BuiltinCalloutKeyword): void {
+function wrapCurrentLineInCallout(editor: Editor, calloutID: CalloutID): void {
   const { line, ch } = editor.getCursor();
   const lineText = editor.getLine(line);
-  const calloutHeader = makeDefaultCalloutHeader(calloutKeyword);
+  const calloutHeader = makeDefaultCalloutHeader(calloutID);
   const prependedLine = `> ${lineText}`;
   const newText = `${calloutHeader}\n${prependedLine}`;
   editor.replaceRange(newText, { line, ch: 0 }, { line, ch: lineText.length });

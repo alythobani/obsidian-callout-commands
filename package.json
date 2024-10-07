@@ -1,7 +1,15 @@
 {
   "private": true,
+  "type": "module",
+  "name": "obsidian-callout-toggle-commands",
+  "description": "An Obsidian plugin providing individual commands for adding and removing callout wrappers to/from selected lines of text.",
+  "main": "./main.js",
+  "author": "Aly Thobani",
+  "license": "GPL-3.0-only",
+  "version": "1.0.0",
   "dependencies": {
-    "obsidian": "^1.6.6"
+    "obsidian": "^1.6.6",
+    "obsidian-callout-manager": "^1.0.2-alpha1"
   },
   "devDependencies": {
     "@eslint/js": "^9.10.0",
