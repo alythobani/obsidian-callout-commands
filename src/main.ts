@@ -4,18 +4,18 @@ import { BUILTIN_CALLOUT_IDS } from "./callouts/builtinCallouts";
 import {
   CalloutManagerOwnedHandle,
   getAllCalloutIDsFromCalloutManager,
-  loadAndWatchCalloutManagerIfInstalled,
+  loadPluginHandleAndWatchAPIIfInstalled,
 } from "./callouts/calloutManager";
 import {
-  makeWrapInCalloutCommand,
-  removeCalloutFromSelectedLinesCommand,
+  addAllCommandsToPlugin,
+  removeOutdatedWrapInCalloutCommandsFromPlugin,
 } from "./commands/allCommands";
-import { getFullWrapCalloutCommandID } from "./commands/commandIDs";
+import { makeWrapInCalloutCommand } from "./commands/wrapInCallout/wrapInCallout";
 import { logInfo } from "./utils/logger";
 
 export default class CalloutToggleCommandsPlugin extends Plugin {
   private calloutManager?: CalloutManagerOwnedHandle;
-  private addedCalloutIDs = new Set<CalloutID>(); // Used for syncing commands with Callout Manager callout changes
+  private readonly addedCalloutIDs = new Set<CalloutID>(); // Used for syncing commands with Callout Manager callout changes
 
   onload(): void {
     logInfo("Plugin loaded.");
@@ -23,40 +23,51 @@ export default class CalloutToggleCommandsPlugin extends Plugin {
   }
 
   /**
-   * This function is called when the layout is ready.
+   * Loads the Callout Manager API if the Callout Manager plugin is installed, and then adds all
+   * commands to the plugin.
    *
-   * It's recommended to put plugin setup code here when possible instead of the `onload` function,
-   * for better performance. See Obsidian docs:
+   * It's recommended to put plugin setup code here in `onLayoutReady` over `onload` when possible,
+   * for better Obsidian performance. See Obsidian docs:
    * https://docs.obsidian.md/Plugins/Guides/Optimizing+plugin+load+time
    */
   private async onLayoutReady(): Promise<void> {
-    await loadAndWatchCalloutManagerIfInstalled({
+    await this.loadAndWatchCalloutManagerAPIIfInstalled();
+    this.addAllCommands();
+  }
+
+  private async loadAndWatchCalloutManagerAPIIfInstalled(): Promise<void> {
+    await loadPluginHandleAndWatchAPIIfInstalled({
       plugin: this,
       onAPIHandleGet: this.setCalloutManagerHandle.bind(this),
       onMaybeCalloutsChange: this.onMaybeCalloutsChange.bind(this),
     });
-    this.addAllCommands();
+  }
+
+  private addAllCommands(): void {
+    addAllCommandsToPlugin({
+      plugin: this,
+      allCalloutIDs: this.getAllCalloutIDs(),
+      onWrapInCalloutCommandAdded: (calloutId) => this.addedCalloutIDs.add(calloutId),
+    });
   }
 
   public setCalloutManagerHandle(calloutManager: CalloutManagerOwnedHandle): void {
     this.calloutManager = calloutManager;
   }
 
-  private onMaybeCalloutsChange(allCalloutIDs: readonly CalloutID[]): void {
-    this.removeOutdatedCalloutWrapCommands(allCalloutIDs);
-    this.addMissingWrapInCalloutCommands(allCalloutIDs);
+  private onMaybeCalloutsChange(newCalloutIDs: readonly CalloutID[]): void {
+    this.removeOutdatedCalloutWrapCommands(newCalloutIDs);
+    this.addMissingWrapInCalloutCommands(newCalloutIDs);
   }
 
-  private removeOutdatedCalloutWrapCommands(allCalloutIDs: readonly CalloutID[]): void {
-    const allCalloutIDsSet = new Set(allCalloutIDs);
-    const outdatedCalloutIDs = [...this.addedCalloutIDs].filter((id) => !allCalloutIDsSet.has(id));
-    outdatedCalloutIDs.forEach(this.removeWrapInCalloutCommand.bind(this));
-  }
-
-  private removeWrapInCalloutCommand(calloutID: CalloutID): void {
-    const fullCommandID = getFullWrapCalloutCommandID(calloutID);
-    this.app.commands.removeCommand(fullCommandID);
-    this.addedCalloutIDs.delete(calloutID);
+  private removeOutdatedCalloutWrapCommands(newCalloutIDs: readonly CalloutID[]): void {
+    const previousCalloutIDs = [...this.addedCalloutIDs];
+    removeOutdatedWrapInCalloutCommandsFromPlugin({
+      plugin: this,
+      newCalloutIDs,
+      previousCalloutIDs,
+      onWrapInCalloutCommandRemoved: (calloutId) => this.addedCalloutIDs.delete(calloutId),
+    });
   }
 
   private addMissingWrapInCalloutCommands(allCalloutIDs: readonly CalloutID[]): void {
@@ -64,27 +75,10 @@ export default class CalloutToggleCommandsPlugin extends Plugin {
     missingCalloutIDs.forEach(this.addWrapInCalloutCommand.bind(this));
   }
 
-  /**
-   * Registers all commands.
-   */
-  private addAllCommands(): void {
-    this.addAllWrapInCalloutCommands();
-    this.addRemoveCalloutCommand();
-  }
-
-  private addAllWrapInCalloutCommands(): void {
-    const allCalloutIDs = this.getAllCalloutIDs();
-    allCalloutIDs.forEach(this.addWrapInCalloutCommand.bind(this));
-  }
-
   private addWrapInCalloutCommand(calloutID: CalloutID): void {
     const wrapCommand = makeWrapInCalloutCommand(calloutID);
     this.addCommand(wrapCommand);
     this.addedCalloutIDs.add(calloutID);
-  }
-
-  private addRemoveCalloutCommand(): void {
-    this.addCommand(removeCalloutFromSelectedLinesCommand);
   }
 
   /**

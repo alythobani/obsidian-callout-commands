@@ -9,13 +9,14 @@ import {
 export type CalloutManagerOwnedHandle = CalloutManager<true>;
 
 /**
- * Loads the Callout Manager API handle if it is installed, and watches for changes to the callouts.
+ * Loads a Callout Manager API handle if the Callout Manager plugin is installed, and watches for
+ * changes to the callouts.
  *
  * @param plugin The plugin instance (for tying to the API handle).
  * @param onAPIHandleGet The callback to call when the API handle is loaded.
  * @param onMaybeCalloutsChange The callback to call on "change" events which could involve added/removed callouts.
  */
-export async function loadAndWatchCalloutManagerIfInstalled({
+export async function loadPluginHandleAndWatchAPIIfInstalled({
   plugin,
   onAPIHandleGet,
   onMaybeCalloutsChange,
@@ -35,7 +36,7 @@ export async function loadAndWatchCalloutManagerIfInstalled({
   });
 }
 
-export async function getCalloutManagerAPIHandleIfInstalled(
+async function getCalloutManagerAPIHandleIfInstalled(
   plugin: Plugin
 ): Promise<CalloutManagerOwnedHandle | undefined> {
   if (!isCalloutManagerInstalled(plugin.app)) {

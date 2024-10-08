@@ -1,10 +1,11 @@
-import { Editor, EditorRange } from "obsidian";
+import { Command, Editor, EditorRange } from "obsidian";
 import { getLastElement, isNonEmptyArray } from "../utils/arrayUtils";
 import {
   getCalloutIDAndEffectiveTitle,
   isCustomTitle,
   makeH6Line,
 } from "../utils/calloutTitleUtils";
+import { makeCalloutSelectionCheckCallback } from "../utils/editorCheckCallbackUtils";
 import {
   CursorPositions,
   getCursorPositions,
@@ -13,11 +14,17 @@ import {
 } from "../utils/selectionUtils";
 import { getTextLines } from "../utils/stringUtils";
 
+export const removeCalloutFromSelectedLinesCommand: Command = {
+  id: "remove-callout-from-selected-lines",
+  name: "Remove Callout from Selected Lines",
+  editorCheckCallback: makeCalloutSelectionCheckCallback(removeCalloutFromSelectedLines),
+};
+
 /**
  * Removes the callout from the selected lines. Retains the title if it's not the default header for
  * the given callout, else removes the entire header line.
  */
-export function removeCalloutFromSelectedLines(editor: Editor): void {
+function removeCalloutFromSelectedLines(editor: Editor): void {
   const originalCursorPositions = getCursorPositions(editor);
   const { range: selectedLinesRange, text } = getSelectedLinesRangeAndText(editor); // Full selected lines range and text
   const textLines = getTextLines(text);

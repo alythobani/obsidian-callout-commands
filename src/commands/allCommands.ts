@@ -1,27 +1,85 @@
-import { Command } from "obsidian";
+import { Plugin } from "obsidian";
 import { CalloutID } from "obsidian-callout-manager";
-import { makeCalloutSelectionCheckCallback } from "../utils/editorCheckCallbackUtils";
-import { toTitleCaseWord } from "../utils/stringUtils";
-import { getPartialWrapCalloutCommandID } from "./commandIDs";
-import { removeCalloutFromSelectedLines } from "./removeCallout";
-import { makeWrapCurrentLineOrSelectedLinesInCalloutEditorCallback } from "./wrapInCallout/wrapInCallout";
+import { getFullWrapCalloutCommandID } from "./commandIDs";
+import { removeCalloutFromSelectedLinesCommand } from "./removeCallout";
+import { makeWrapInCalloutCommand } from "./wrapInCallout/wrapInCallout";
 
-export const removeCalloutFromSelectedLinesCommand: Command = {
-  id: "remove-callout-from-selected-lines",
-  name: "Remove Callout from Selected Lines",
-  editorCheckCallback: makeCalloutSelectionCheckCallback(removeCalloutFromSelectedLines),
-};
-
-export function makeWrapInCalloutCommand(calloutID: CalloutID): Command {
-  const capitalizedKeyword = toTitleCaseWord(calloutID);
-  return {
-    id: getPartialWrapCalloutCommandID(calloutID),
-    name: `Wrap Current Line or Selected Lines in ${capitalizedKeyword} Callout`,
-    editorCallback: makeWrapCurrentLineOrSelectedLinesInCalloutEditorCallback(calloutID),
-  };
+/**
+ * Registers all commands in the plugin.
+ */
+export function addAllCommandsToPlugin({
+  plugin,
+  allCalloutIDs,
+  onWrapInCalloutCommandAdded,
+}: {
+  plugin: Plugin;
+  allCalloutIDs: readonly CalloutID[];
+  onWrapInCalloutCommandAdded: (calloutID: CalloutID) => void;
+}): void {
+  addAllWrapInCalloutCommands({ plugin, allCalloutIDs, onWrapInCalloutCommandAdded });
+  addRemoveCalloutCommand(plugin);
 }
 
-export function getAllCommands(calloutIDs: readonly CalloutID[]): Command[] {
-  const wrapCommands = calloutIDs.map(makeWrapInCalloutCommand);
-  return [...wrapCommands, removeCalloutFromSelectedLinesCommand];
+function addAllWrapInCalloutCommands({
+  plugin,
+  allCalloutIDs,
+  onWrapInCalloutCommandAdded,
+}: {
+  plugin: Plugin;
+  allCalloutIDs: readonly CalloutID[];
+  onWrapInCalloutCommandAdded: (calloutID: CalloutID) => void;
+}): void {
+  allCalloutIDs.forEach((calloutID) =>
+    addWrapInCalloutCommand({ plugin, calloutID, onWrapInCalloutCommandAdded })
+  );
+}
+
+function addWrapInCalloutCommand({
+  plugin,
+  calloutID,
+  onWrapInCalloutCommandAdded,
+}: {
+  plugin: Plugin;
+  calloutID: CalloutID;
+  onWrapInCalloutCommandAdded: (calloutID: CalloutID) => void;
+}): void {
+  const wrapInCalloutCommand = makeWrapInCalloutCommand(calloutID);
+  plugin.addCommand(wrapInCalloutCommand);
+  onWrapInCalloutCommandAdded(calloutID);
+}
+
+function addRemoveCalloutCommand(plugin: Plugin): void {
+  plugin.addCommand(removeCalloutFromSelectedLinesCommand);
+}
+
+export function removeOutdatedWrapInCalloutCommandsFromPlugin({
+  plugin,
+  newCalloutIDs,
+  previousCalloutIDs,
+  onWrapInCalloutCommandRemoved,
+}: {
+  plugin: Plugin;
+  newCalloutIDs: readonly CalloutID[];
+  previousCalloutIDs: readonly CalloutID[];
+  onWrapInCalloutCommandRemoved: (calloutID: CalloutID) => void;
+}): void {
+  const allCalloutIDsSet = new Set(newCalloutIDs);
+  const outdatedCalloutIDs = [...previousCalloutIDs].filter((id) => !allCalloutIDsSet.has(id));
+  outdatedCalloutIDs.forEach((calloutID) =>
+    removeWrapInCalloutCommandFromPlugin({ plugin, calloutID, onWrapInCalloutCommandRemoved })
+  );
+}
+
+function removeWrapInCalloutCommandFromPlugin({
+  plugin,
+  calloutID,
+  onWrapInCalloutCommandRemoved,
+}: {
+  plugin: Plugin;
+  calloutID: CalloutID;
+  onWrapInCalloutCommandRemoved: (calloutID: CalloutID) => void;
+}): void {
+  const fullCommandID = getFullWrapCalloutCommandID(calloutID);
+  plugin.app.commands.removeCommand(fullCommandID);
+  onWrapInCalloutCommandRemoved(calloutID);
 }
