@@ -55,13 +55,10 @@ export default class CalloutToggleCommandsPlugin extends Plugin {
   }
 
   private listenForCalloutManagerChanges(calloutManager: CalloutManagerOwnedHandle): void {
-    calloutManager.on("change", () => {
-      logInfo("Callout Manager change event received; refreshing commands.");
-      this.refreshCommands(calloutManager);
-    });
+    calloutManager.on("change", this.refreshCalloutWrapCommands.bind(this, calloutManager));
   }
 
-  private refreshCommands(calloutManager: CalloutManagerOwnedHandle): void {
+  private refreshCalloutWrapCommands(calloutManager: CalloutManagerOwnedHandle): void {
     const { addedCalloutIDs, removedCalloutIDs, newCalloutIDsSet } = getAddedAndRemovedCalloutIDs({
       calloutManager,
       oldCalloutIDs: this.cachedCalloutIDs,
