@@ -21,14 +21,6 @@ import { logInfo } from "./utils/logger";
  */
 const PLUGIN_ID = "callout-toggle-commands";
 
-declare module "obsidian" {
-  interface App {
-    commands: {
-      removeCommand: (commandID: string) => void;
-    };
-  }
-}
-
 export default class CalloutToggleCommandsPlugin extends Plugin {
   private calloutManager?: CalloutManagerOwnedHandle;
   private cachedCalloutIDs = new Set<CalloutID>();
