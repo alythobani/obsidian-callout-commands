@@ -4,7 +4,7 @@ import { makeCalloutSelectionCheckCallback } from "../utils/editorCheckCallbackU
 import { toTitleCaseWord } from "../utils/stringUtils";
 import { getPartialWrapCalloutCommandID } from "./commandIDs";
 import { removeCalloutFromSelectedLines } from "./removeCallout";
-import { makeWrapCurrentLineOrSelectedLinesInCalloutEditorCallback } from "./wrapLinesInCallout";
+import { makeWrapCurrentLineOrSelectedLinesInCalloutEditorCallback } from "./wrapInCallout/wrapLinesInCallout";
 
 export const removeCalloutFromSelectedLinesCommand: Command = {
   id: "remove-callout-from-selected-lines",

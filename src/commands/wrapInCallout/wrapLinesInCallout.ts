@@ -1,19 +1,19 @@
 import { Editor, EditorRange } from "obsidian";
 import { CalloutID } from "obsidian-callout-manager";
-import { NonEmptyStringArray } from "../utils/arrayUtils";
+import { NonEmptyStringArray } from "../../utils/arrayUtils";
 import {
   getCustomHeadingTitleIfExists,
   getDefaultCalloutTitle,
   makeCalloutHeader,
   makeDefaultCalloutHeader,
-} from "../utils/calloutTitleUtils";
+} from "../../utils/calloutTitleUtils";
 import {
   CursorPositions,
   getCursorPositions,
   getNewAnchorAndHead,
   getSelectedLinesRangeAndText,
-} from "../utils/selectionUtils";
-import { getTextLines } from "../utils/stringUtils";
+} from "../../utils/selectionUtils";
+import { getTextLines } from "../../utils/stringUtils";
 
 export function makeWrapCurrentLineOrSelectedLinesInCalloutEditorCallback(
   calloutID: CalloutID
