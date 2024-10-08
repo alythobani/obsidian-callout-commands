@@ -9,7 +9,7 @@ import {
 import {
   addAllCommandsToPlugin,
   removeOutdatedWrapInCalloutCommandsFromPlugin,
-} from "./commands/allCommands";
+} from "./commands/addAndRemoveCommands";
 import { makeWrapInCalloutCommand } from "./commands/wrapInCallout/wrapInCallout";
 import { logInfo } from "./utils/logger";
 
