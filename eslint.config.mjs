@@ -16,6 +16,9 @@ export default tseslint.config(
       },
     },
     rules: {
+      "@typescript-eslint/explicit-function-return-type": "error",
+      "@typescript-eslint/no-confusing-void-expression": ["error", { ignoreArrowShorthand: true }],
+      "@typescript-eslint/no-non-null-assertion": "error",
       "@typescript-eslint/no-unused-vars": [
         "error",
         {
@@ -26,8 +29,6 @@ export default tseslint.config(
           varsIgnorePattern: "^_",
         },
       ],
-      "@typescript-eslint/explicit-function-return-type": "error",
-      "@typescript-eslint/no-non-null-assertion": "error",
       "@typescript-eslint/strict-boolean-expressions": "error",
       "object-shorthand": "error",
     },

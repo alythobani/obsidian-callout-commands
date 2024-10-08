@@ -15,7 +15,7 @@ import {
 } from "../utils/selectionUtils";
 import { getTextLines } from "../utils/stringUtils";
 
-export function makeWrapCurrentLineOrSelectedLinesInCalloutCommand(
+export function makeWrapCurrentLineOrSelectedLinesInCalloutEditorCallback(
   calloutID: CalloutID
 ): (editor: Editor) => void {
   return (editor: Editor) => {

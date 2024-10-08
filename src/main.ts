@@ -3,11 +3,13 @@ import { CalloutID } from "obsidian-callout-manager";
 import { BUILTIN_CALLOUT_IDS } from "./callouts/builtinCallouts";
 import {
   CalloutManagerOwnedHandle,
-  getAddedAndRemovedCalloutIDs,
   getAllCalloutIDsFromCalloutManager,
-  getCalloutManagerAPIHandleIfInstalled,
+  loadAndWatchCalloutManagerIfInstalled,
 } from "./callouts/calloutManager";
-import { getAllCommands, makeWrapCalloutCommand } from "./commands/allCommands";
+import {
+  makeWrapInCalloutCommand,
+  removeCalloutFromSelectedLinesCommand,
+} from "./commands/allCommands";
 import { getFullWrapCalloutCommandID } from "./commands/commandIDs";
 import { logInfo } from "./utils/logger";
 
@@ -28,69 +30,61 @@ export default class CalloutToggleCommandsPlugin extends Plugin {
    * https://docs.obsidian.md/Plugins/Guides/Optimizing+plugin+load+time
    */
   private async onLayoutReady(): Promise<void> {
-    await this.loadAndWatchCalloutManagerIfInstalled();
+    await loadAndWatchCalloutManagerIfInstalled({
+      plugin: this,
+      onAPIHandleGet: this.setCalloutManagerHandle.bind(this),
+      onMaybeCalloutsChange: this.onMaybeCalloutsChange.bind(this),
+    });
     this.addAllCommands();
   }
 
-  /**
-   * Loads (and watches) the Callout Manager API if the user has installed the Callout Manager plugin.
-   */
-  private async loadAndWatchCalloutManagerIfInstalled(): Promise<void> {
-    const maybeAPIHandle = await getCalloutManagerAPIHandleIfInstalled(this);
-    if (maybeAPIHandle === undefined) {
-      return;
-    }
-    this.calloutManager = maybeAPIHandle;
-    this.listenForCalloutManagerChanges(this.calloutManager);
+  public setCalloutManagerHandle(calloutManager: CalloutManagerOwnedHandle): void {
+    this.calloutManager = calloutManager;
   }
 
-  /**
-   * Listens for the Callout Manager's "change" event, refreshing the callout wrap commands when
-   * it fires.
-   */
-  private listenForCalloutManagerChanges(calloutManager: CalloutManagerOwnedHandle): void {
-    calloutManager.on("change", this.refreshCalloutWrapCommands.bind(this, calloutManager));
+  private onMaybeCalloutsChange(allCalloutIDs: readonly CalloutID[]): void {
+    this.removeOutdatedCalloutWrapCommands(allCalloutIDs);
+    this.addMissingWrapInCalloutCommands(allCalloutIDs);
   }
 
-  /**
-   * Refreshes/syncs the callout wrap commands based on the new set of callout IDs from the Callout
-   * Manager API. Removes wrap commands for callouts that were removed and adds wrap commands for
-   * callouts that were added.
-   */
-  private refreshCalloutWrapCommands(calloutManager: CalloutManagerOwnedHandle): void {
-    const { addedCalloutIDs, removedCalloutIDs, newCalloutIDsSet } = getAddedAndRemovedCalloutIDs({
-      calloutManager,
-      oldCalloutIDs: this.addedCalloutIDs,
-    });
-    this.removeCalloutWrapCommands(removedCalloutIDs);
-    this.addCalloutWrapCommands(addedCalloutIDs);
-    this.addedCalloutIDs = newCalloutIDsSet;
+  private removeOutdatedCalloutWrapCommands(allCalloutIDs: readonly CalloutID[]): void {
+    const allCalloutIDsSet = new Set(allCalloutIDs);
+    const outdatedCalloutIDs = [...this.addedCalloutIDs].filter((id) => !allCalloutIDsSet.has(id));
+    outdatedCalloutIDs.forEach(this.removeWrapInCalloutCommand.bind(this));
   }
 
-  private removeCalloutWrapCommands(calloutIDs: readonly CalloutID[]): void {
-    for (const calloutID of calloutIDs) {
-      const fullCommandID = getFullWrapCalloutCommandID(calloutID);
-      this.app.commands.removeCommand(fullCommandID);
-    }
+  private removeWrapInCalloutCommand(calloutID: CalloutID): void {
+    const fullCommandID = getFullWrapCalloutCommandID(calloutID);
+    this.app.commands.removeCommand(fullCommandID);
+    this.addedCalloutIDs.delete(calloutID);
   }
 
-  private addCalloutWrapCommands(calloutIDs: readonly CalloutID[]): void {
-    for (const calloutID of calloutIDs) {
-      const command = makeWrapCalloutCommand(calloutID);
-      this.addCommand(command);
-    }
+  private addMissingWrapInCalloutCommands(allCalloutIDs: readonly CalloutID[]): void {
+    const missingCalloutIDs = allCalloutIDs.filter((id) => !this.addedCalloutIDs.has(id));
+    missingCalloutIDs.forEach(this.addWrapInCalloutCommand.bind(this));
   }
 
   /**
    * Registers all commands.
    */
   private addAllCommands(): void {
+    this.addAllWrapInCalloutCommands();
+    this.addRemoveCalloutCommand();
+  }
+
+  private addAllWrapInCalloutCommands(): void {
     const allCalloutIDs = this.getAllCalloutIDs();
-    const allCommands = getAllCommands(allCalloutIDs);
-    for (const command of allCommands) {
-      this.addCommand(command);
-    }
-    this.addedCalloutIDs = new Set(allCalloutIDs);
+    allCalloutIDs.forEach(this.addWrapInCalloutCommand.bind(this));
+  }
+
+  private addWrapInCalloutCommand(calloutID: CalloutID): void {
+    const wrapCommand = makeWrapInCalloutCommand(calloutID);
+    this.addCommand(wrapCommand);
+    this.addedCalloutIDs.add(calloutID);
+  }
+
+  private addRemoveCalloutCommand(): void {
+    this.addCommand(removeCalloutFromSelectedLinesCommand);
   }
 
   /**

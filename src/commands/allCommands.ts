@@ -4,24 +4,24 @@ import { makeCalloutSelectionCheckCallback } from "../utils/editorCheckCallbackU
 import { toTitleCaseWord } from "../utils/stringUtils";
 import { getPartialWrapCalloutCommandID } from "./commandIDs";
 import { removeCalloutFromSelectedLines } from "./removeCallout";
-import { makeWrapCurrentLineOrSelectedLinesInCalloutCommand } from "./wrapLinesInCallout";
+import { makeWrapCurrentLineOrSelectedLinesInCalloutEditorCallback } from "./wrapLinesInCallout";
 
-const removeCalloutFromSelectedLinesCommand: Command = {
+export const removeCalloutFromSelectedLinesCommand: Command = {
   id: "remove-callout-from-selected-lines",
   name: "Remove Callout from Selected Lines",
   editorCheckCallback: makeCalloutSelectionCheckCallback(removeCalloutFromSelectedLines),
 };
 
-export function makeWrapCalloutCommand(calloutID: CalloutID): Command {
+export function makeWrapInCalloutCommand(calloutID: CalloutID): Command {
   const capitalizedKeyword = toTitleCaseWord(calloutID);
   return {
     id: getPartialWrapCalloutCommandID(calloutID),
     name: `Wrap Current Line or Selected Lines in ${capitalizedKeyword} Callout`,
-    editorCallback: makeWrapCurrentLineOrSelectedLinesInCalloutCommand(calloutID),
+    editorCallback: makeWrapCurrentLineOrSelectedLinesInCalloutEditorCallback(calloutID),
   };
 }
 
 export function getAllCommands(calloutIDs: readonly CalloutID[]): Command[] {
-  const wrapCommands = calloutIDs.map(makeWrapCalloutCommand);
+  const wrapCommands = calloutIDs.map(makeWrapInCalloutCommand);
   return [...wrapCommands, removeCalloutFromSelectedLinesCommand];
 }
