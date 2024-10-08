@@ -1,5 +1,6 @@
 import { Plugin } from "obsidian";
 import { CalloutID } from "obsidian-callout-manager";
+import { filterOutElements } from "../utils/arrayUtils";
 import { getFullWrapCalloutCommandID } from "./commandIDs";
 import { removeCalloutFromSelectedLinesCommand } from "./removeCallout";
 import { makeWrapInCalloutCommand } from "./wrapInCallout/wrapInCallout";
@@ -64,7 +65,7 @@ export function removeOutdatedWrapInCalloutCommandsFromPlugin({
   onWrapInCalloutCommandRemoved: (calloutID: CalloutID) => void;
 }): void {
   const allCalloutIDsSet = new Set(newCalloutIDs);
-  const outdatedCalloutIDs = [...previousCalloutIDs].filter((id) => !allCalloutIDsSet.has(id));
+  const outdatedCalloutIDs = filterOutElements(previousCalloutIDs, allCalloutIDsSet);
   outdatedCalloutIDs.forEach((calloutID) =>
     removeWrapInCalloutCommandFromPlugin({ plugin, calloutID, onWrapInCalloutCommandRemoved })
   );

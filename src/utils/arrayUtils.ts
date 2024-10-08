@@ -8,3 +8,7 @@ export function getLastElement<T>(arr: readonly [T, ...T[]]): T {
 export function isNonEmptyArray<T>(arr: readonly T[]): arr is [T, ...T[]] {
   return arr.length > 0;
 }
+
+export function filterOutElements<T>(arr: readonly T[], elementsToFilterOut: Set<T>): T[] {
+  return arr.filter((element) => !elementsToFilterOut.has(element));
+}

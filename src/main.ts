@@ -11,11 +11,12 @@ import {
   removeOutdatedWrapInCalloutCommandsFromPlugin,
 } from "./commands/addAndRemoveCommands";
 import { makeWrapInCalloutCommand } from "./commands/wrapInCallout/wrapInCallout";
+import { filterOutElements } from "./utils/arrayUtils";
 import { logInfo } from "./utils/logger";
 
 export default class CalloutToggleCommandsPlugin extends Plugin {
   private calloutManager?: CalloutManagerOwnedHandle;
-  private readonly addedCalloutIDs = new Set<CalloutID>(); // Used for syncing commands with Callout Manager callout changes
+  private readonly addedWrapCommandCalloutIDs = new Set<CalloutID>(); // Used for syncing commands with Callout Manager callout changes
 
   onload(): void {
     logInfo("Plugin loaded.");
@@ -47,7 +48,7 @@ export default class CalloutToggleCommandsPlugin extends Plugin {
     addAllCommandsToPlugin({
       plugin: this,
       allCalloutIDs: this.getAllCalloutIDs(),
-      onWrapInCalloutCommandAdded: (calloutId) => this.addedCalloutIDs.add(calloutId),
+      onWrapInCalloutCommandAdded: (calloutId) => this.addedWrapCommandCalloutIDs.add(calloutId),
     });
   }
 
@@ -61,24 +62,25 @@ export default class CalloutToggleCommandsPlugin extends Plugin {
   }
 
   private removeOutdatedCalloutWrapCommands(newCalloutIDs: readonly CalloutID[]): void {
-    const previousCalloutIDs = [...this.addedCalloutIDs];
+    const previousCalloutIDs = [...this.addedWrapCommandCalloutIDs];
     removeOutdatedWrapInCalloutCommandsFromPlugin({
       plugin: this,
       newCalloutIDs,
       previousCalloutIDs,
-      onWrapInCalloutCommandRemoved: (calloutId) => this.addedCalloutIDs.delete(calloutId),
+      onWrapInCalloutCommandRemoved: (calloutId) =>
+        this.addedWrapCommandCalloutIDs.delete(calloutId),
     });
   }
 
   private addMissingWrapInCalloutCommands(allCalloutIDs: readonly CalloutID[]): void {
-    const missingCalloutIDs = allCalloutIDs.filter((id) => !this.addedCalloutIDs.has(id));
+    const missingCalloutIDs = filterOutElements(allCalloutIDs, this.addedWrapCommandCalloutIDs);
     missingCalloutIDs.forEach(this.addWrapInCalloutCommand.bind(this));
   }
 
   private addWrapInCalloutCommand(calloutID: CalloutID): void {
     const wrapCommand = makeWrapInCalloutCommand(calloutID);
     this.addCommand(wrapCommand);
-    this.addedCalloutIDs.add(calloutID);
+    this.addedWrapCommandCalloutIDs.add(calloutID);
   }
 
   /**
