@@ -25,10 +25,10 @@ function getSelectedLinesRange(editor: Editor): EditorRange {
   return { from: startOfFirstSelectedLine, to: endOfLastSelectedLine };
 }
 
-export function getSelectionRange(editor: Editor): EditorRange {
-  const from = editor.getCursor("from");
-  const to = editor.getCursor("to");
-  return { from, to };
+export function getCursorPositions(editor: Editor): CursorPositions {
+  const { anchor, head } = getAnchorAndHead(editor);
+  const { from, to } = getSelectionRange(editor);
+  return { anchor, head, from, to };
 }
 
 export function getAnchorAndHead(editor: Editor): { anchor: EditorPosition; head: EditorPosition } {
@@ -37,17 +37,19 @@ export function getAnchorAndHead(editor: Editor): { anchor: EditorPosition; head
   return { anchor, head };
 }
 
-export function getCursorPositions(editor: Editor): CursorPositions {
-  const { anchor, head } = getAnchorAndHead(editor);
-  const { from, to } = getSelectionRange(editor);
-  return { anchor, head, from, to };
+export function getSelectionRange(editor: Editor): EditorRange {
+  const from = editor.getCursor("from");
+  const to = editor.getCursor("to");
+  return { from, to };
 }
 
-export function isHeadBeforeAnchor({
-  anchor,
-  head,
-}: Pick<CursorPositions, "anchor" | "head">): boolean {
-  return head.line < anchor.line || (head.line === anchor.line && head.ch < anchor.ch);
+export function setSelectionInCorrectDirection(
+  editor: Editor,
+  originalCursorPositions: CursorPositions,
+  newRange: EditorRange
+): void {
+  const { newAnchor, newHead } = getNewAnchorAndHead(originalCursorPositions, newRange);
+  editor.setSelection(newAnchor, newHead);
 }
 
 export function getNewAnchorAndHead(
@@ -58,4 +60,11 @@ export function getNewAnchorAndHead(
   return isHeadBeforeAnchor(originalCursorPositions)
     ? { newAnchor: newTo, newHead: newFrom }
     : { newAnchor: newFrom, newHead: newTo };
+}
+
+export function isHeadBeforeAnchor({
+  anchor,
+  head,
+}: Pick<CursorPositions, "anchor" | "head">): boolean {
+  return head.line < anchor.line || (head.line === anchor.line && head.ch < anchor.ch);
 }
