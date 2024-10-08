@@ -44,10 +44,19 @@ export default class CalloutToggleCommandsPlugin extends Plugin {
     this.listenForCalloutManagerChanges(this.calloutManager);
   }
 
+  /**
+   * Listens for the Callout Manager's "change" event, refreshing the callout wrap commands when
+   * it fires.
+   */
   private listenForCalloutManagerChanges(calloutManager: CalloutManagerOwnedHandle): void {
     calloutManager.on("change", this.refreshCalloutWrapCommands.bind(this, calloutManager));
   }
 
+  /**
+   * Refreshes/syncs the callout wrap commands based on the new set of callout IDs from the Callout
+   * Manager API. Removes wrap commands for callouts that were removed and adds wrap commands for
+   * callouts that were added.
+   */
   private refreshCalloutWrapCommands(calloutManager: CalloutManagerOwnedHandle): void {
     const { addedCalloutIDs, removedCalloutIDs, newCalloutIDsSet } = getAddedAndRemovedCalloutIDs({
       calloutManager,
