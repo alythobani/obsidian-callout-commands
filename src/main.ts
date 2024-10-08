@@ -37,6 +37,9 @@ export default class CalloutToggleCommandsPlugin extends Plugin {
     this.addAllCommands();
   }
 
+  /**
+   * Loads the Callout Manager API if the user has installed the Callout Manager plugin.
+   */
   private async loadCalloutManagerIfInstalled(): Promise<void> {
     const maybeAPIHandle = await getCalloutManagerAPIHandleIfInstalled(this);
     if (maybeAPIHandle === undefined) {
@@ -45,6 +48,9 @@ export default class CalloutToggleCommandsPlugin extends Plugin {
     this.calloutManager = maybeAPIHandle;
   }
 
+  /**
+   * Registers all commands.
+   */
   private addAllCommands(): void {
     const allCalloutIDs = this.getAllCalloutIDs();
     const allCommands = getAllCommands(allCalloutIDs);
@@ -53,6 +59,11 @@ export default class CalloutToggleCommandsPlugin extends Plugin {
     }
   }
 
+  /**
+   * Returns a list of all callout IDs that are available to be used in Obsidian. Uses the Callout
+   * Manager API if the user has installed the Callout Manager plugin. Otherwise, returns a
+   * hard-coded list of built-in callout IDs.
+   */
   private getAllCalloutIDs(): readonly CalloutID[] {
     if (this.calloutManager === undefined) {
       return this.getBuiltinCalloutIDs();
@@ -60,6 +71,9 @@ export default class CalloutToggleCommandsPlugin extends Plugin {
     return getAllCalloutIDsFromCalloutManager(this.calloutManager);
   }
 
+  /**
+   * Returns a hard-coded list of built-in callout IDs.
+   */
   private getBuiltinCalloutIDs(): readonly CalloutID[] {
     return BUILTIN_CALLOUT_IDS;
   }
