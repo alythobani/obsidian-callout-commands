@@ -33,11 +33,11 @@ export default class CalloutToggleCommandsPlugin extends Plugin {
    * https://docs.obsidian.md/Plugins/Guides/Optimizing+plugin+load+time
    */
   private async onLayoutReady(): Promise<void> {
-    await this.maybeLoadCalloutManager();
+    await this.loadCalloutManagerIfInstalled();
     this.addAllCommands();
   }
 
-  private async maybeLoadCalloutManager(): Promise<void> {
+  private async loadCalloutManagerIfInstalled(): Promise<void> {
     const maybeAPIHandle = await getCalloutManagerAPIHandleIfInstalled(this);
     if (maybeAPIHandle === undefined) {
       return;
