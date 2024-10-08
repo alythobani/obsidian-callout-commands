@@ -3,7 +3,7 @@
   "name": "Callout Toggle Commands",
   "version": "1.0.0",
   "minAppVersion": "1.6.7",
-  "description": "An Obsidian plugin providing individual commands for adding and removing callout wrappers to/from selected lines of text.",
+  "description": "Add and remove callout wrappers to/from selected lines of text.",
   "author": "Aly Thobani",
   "authorUrl": "https://github.com/alythobani/",
   "isDesktopOnly": false
