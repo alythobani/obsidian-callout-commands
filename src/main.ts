@@ -1,24 +1,37 @@
 import { Plugin } from "obsidian";
-import { CalloutID, CalloutManager } from "obsidian-callout-manager";
+import { CalloutID } from "obsidian-callout-manager";
 import { BUILTIN_CALLOUT_IDS } from "./callouts/builtinCallouts";
 import {
+  CalloutManagerOwnedHandle,
+  getAddedAndRemovedCalloutIDs,
   getAllCalloutIDsFromCalloutManager,
   getCalloutManagerAPIHandleIfInstalled,
 } from "./callouts/calloutManager";
-import { getAllCommands } from "./commands/allCommands";
+import {
+  getAllCommands,
+  getPartialWrapCalloutCommandID,
+  makeWrapCalloutCommand,
+} from "./commands/allCommands";
 import { logInfo } from "./utils/logger";
+
+/**
+ * The ID of the plugin.
+ *
+ * NOTE: This should be kept in sync with the `id` in manifest.json.
+ */
+const PLUGIN_ID = "callout-toggle-commands";
 
 declare module "obsidian" {
   interface App {
     commands: {
-      addCommand: (command: Command) => void;
       removeCommand: (commandID: string) => void;
     };
   }
 }
 
 export default class CalloutToggleCommandsPlugin extends Plugin {
-  private calloutManager?: CalloutManager<true>;
+  private calloutManager?: CalloutManagerOwnedHandle;
+  private cachedCalloutIDs = new Set<CalloutID>();
 
   onload(): void {
     logInfo("Plugin loaded.");
@@ -46,6 +59,40 @@ export default class CalloutToggleCommandsPlugin extends Plugin {
       return;
     }
     this.calloutManager = maybeAPIHandle;
+    this.listenForCalloutManagerChanges(this.calloutManager);
+  }
+
+  private listenForCalloutManagerChanges(calloutManager: CalloutManagerOwnedHandle): void {
+    calloutManager.on("change", () => {
+      logInfo("Callout Manager change event received; refreshing commands.");
+      this.refreshCommands(calloutManager);
+    });
+  }
+
+  private refreshCommands(calloutManager: CalloutManagerOwnedHandle): void {
+    const { addedCalloutIDs, removedCalloutIDs, newCalloutIDsSet } = getAddedAndRemovedCalloutIDs({
+      calloutManager,
+      oldCalloutIDs: this.cachedCalloutIDs,
+    });
+    this.removeCalloutWrapCommands(removedCalloutIDs);
+    this.addCalloutWrapCommands(addedCalloutIDs);
+    this.cachedCalloutIDs = newCalloutIDsSet;
+  }
+
+  private removeCalloutWrapCommands(calloutIDs: readonly CalloutID[]): void {
+    for (const calloutID of calloutIDs) {
+      logInfo(`Removing command for callout: ${calloutID}`);
+      const pluginCommandID = getPluginWrapCalloutCommandID(calloutID);
+      this.app.commands.removeCommand(pluginCommandID);
+    }
+  }
+
+  private addCalloutWrapCommands(calloutIDs: readonly CalloutID[]): void {
+    for (const calloutID of calloutIDs) {
+      logInfo(`Adding command for callout: ${calloutID}`);
+      const command = makeWrapCalloutCommand(calloutID);
+      this.addCommand(command);
+    }
   }
 
   /**
@@ -57,6 +104,7 @@ export default class CalloutToggleCommandsPlugin extends Plugin {
     for (const command of allCommands) {
       this.addCommand(command);
     }
+    this.cachedCalloutIDs = new Set(allCalloutIDs);
   }
 
   /**
@@ -81,4 +129,14 @@ export default class CalloutToggleCommandsPlugin extends Plugin {
   onunload(): void {
     logInfo("Plugin unloaded.");
   }
+}
+
+function getPluginWrapCalloutCommandID(calloutID: CalloutID): string {
+  const calloutCommandID = getPartialWrapCalloutCommandID(calloutID);
+  const pluginCommandID = getPluginCommandID(calloutCommandID);
+  return pluginCommandID;
+}
+
+function getPluginCommandID(commandID: string): string {
+  return `${PLUGIN_ID}:${commandID}`;
 }

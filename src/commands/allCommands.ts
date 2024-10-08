@@ -11,18 +11,26 @@ const removeCalloutFromSelectedLinesCommand: Command = {
   editorCheckCallback: makeCalloutSelectionCheckCallback(removeCalloutFromSelectedLines),
 };
 
-function makeWrapCalloutCommand() {
-  return (calloutID: CalloutID): Command => {
-    const capitalizedKeyword = toTitleCaseWord(calloutID);
-    return {
-      id: `wrap-current-line-or-selected-lines-in-${calloutID}-callout`,
-      name: `Wrap Current Line or Selected Lines in ${capitalizedKeyword} Callout`,
-      editorCallback: makeWrapCurrentLineOrSelectedLinesInCalloutCommand(calloutID),
-    } as const;
+export function makeWrapCalloutCommand(calloutID: CalloutID): Command {
+  const capitalizedKeyword = toTitleCaseWord(calloutID);
+  return {
+    id: getPartialWrapCalloutCommandID(calloutID),
+    name: `Wrap Current Line or Selected Lines in ${capitalizedKeyword} Callout`,
+    editorCallback: makeWrapCurrentLineOrSelectedLinesInCalloutCommand(calloutID),
   };
 }
 
+/**
+ * Returns the command ID for wrapping the current line or selected lines in a callout.
+ *
+ * This is a partial command ID, so it should be combined with the plugin ID to form the full
+ * command ID, e.g. when removing the command from the app.
+ */
+export function getPartialWrapCalloutCommandID(calloutID: CalloutID): string {
+  return `wrap-current-line-or-selected-lines-in-${calloutID}-callout`;
+}
+
 export function getAllCommands(calloutIDs: readonly CalloutID[]): Command[] {
-  const wrapCommands = calloutIDs.map(makeWrapCalloutCommand());
+  const wrapCommands = calloutIDs.map(makeWrapCalloutCommand);
   return [...wrapCommands, removeCalloutFromSelectedLinesCommand];
 }
