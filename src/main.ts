@@ -1,13 +1,12 @@
 import { Plugin } from "obsidian";
-import {
-  CalloutID,
-  CalloutManager,
-  getApi,
-  isInstalled as isCalloutManagerInstalled,
-} from "obsidian-callout-manager";
+import { CalloutID, CalloutManager } from "obsidian-callout-manager";
 import { BUILTIN_CALLOUT_IDS } from "./callouts/builtinCallouts";
+import {
+  getAllCalloutIDsFromCalloutManager,
+  getCalloutManagerAPIHandleIfInstalled,
+} from "./callouts/calloutManager";
 import { getAllCommands } from "./commands/allCommands";
-import { logError, logInfo } from "./utils/logger";
+import { logInfo } from "./utils/logger";
 
 declare module "obsidian" {
   interface App {
@@ -23,22 +22,27 @@ export default class CalloutToggleCommandsPlugin extends Plugin {
 
   onload(): void {
     logInfo("Plugin loaded.");
+    this.app.workspace.onLayoutReady(this.onLayoutReady.bind(this));
+  }
 
-    this.app.workspace.onLayoutReady(async () => {
-      await this.maybeLoadCalloutManager();
-      this.addAllCommands();
-    });
+  /**
+   * This function is called when the layout is ready.
+   *
+   * It's recommended to put plugin setup code here instead of the `onload` function, for better
+   * performance. See Obsidian docs:
+   * https://docs.obsidian.md/Plugins/Guides/Optimizing+plugin+load+time
+   */
+  private async onLayoutReady(): Promise<void> {
+    await this.maybeLoadCalloutManager();
+    this.addAllCommands();
   }
 
   private async maybeLoadCalloutManager(): Promise<void> {
-    if (isCalloutManagerInstalled(this.app)) {
-      const calloutManager = await getApi(this);
-      if (calloutManager === undefined) {
-        logError("Failed to get Callout Manager API handle.");
-        return;
-      }
-      this.calloutManager = calloutManager;
+    const maybeAPIHandle = await getCalloutManagerAPIHandleIfInstalled(this);
+    if (maybeAPIHandle === undefined) {
+      return;
     }
+    this.calloutManager = maybeAPIHandle;
   }
 
   private addAllCommands(): void {
@@ -51,17 +55,9 @@ export default class CalloutToggleCommandsPlugin extends Plugin {
 
   private getAllCalloutIDs(): readonly CalloutID[] {
     if (this.calloutManager === undefined) {
-      logInfo("Callout Manager not available; using hardcoded list of callout IDs instead");
       return this.getBuiltinCalloutIDs();
     }
-    return this.getAllCalloutIDsFromCalloutManager(this.calloutManager);
-  }
-
-  private getAllCalloutIDsFromCalloutManager(calloutManager: CalloutManager): readonly CalloutID[] {
-    const allCallouts = calloutManager.getCallouts();
-    const allCalloutIDs = allCallouts.map((callout) => callout.id);
-    logInfo(`Got callout IDs from Callout Manager: ${allCalloutIDs.join(", ")}`);
-    return allCalloutIDs;
+    return getAllCalloutIDsFromCalloutManager(this.calloutManager);
   }
 
   private getBuiltinCalloutIDs(): readonly CalloutID[] {
