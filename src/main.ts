@@ -13,7 +13,7 @@ import { logInfo } from "./utils/logger";
 
 export default class CalloutToggleCommandsPlugin extends Plugin {
   private calloutManager?: CalloutManagerOwnedHandle;
-  private cachedCalloutIDs = new Set<CalloutID>();
+  private addedCalloutIDs = new Set<CalloutID>(); // Used for syncing commands with Callout Manager callout changes
 
   onload(): void {
     logInfo("Plugin loaded.");
@@ -28,14 +28,14 @@ export default class CalloutToggleCommandsPlugin extends Plugin {
    * https://docs.obsidian.md/Plugins/Guides/Optimizing+plugin+load+time
    */
   private async onLayoutReady(): Promise<void> {
-    await this.loadCalloutManagerIfInstalled();
+    await this.loadAndWatchCalloutManagerIfInstalled();
     this.addAllCommands();
   }
 
   /**
-   * Loads the Callout Manager API if the user has installed the Callout Manager plugin.
+   * Loads (and watches) the Callout Manager API if the user has installed the Callout Manager plugin.
    */
-  private async loadCalloutManagerIfInstalled(): Promise<void> {
+  private async loadAndWatchCalloutManagerIfInstalled(): Promise<void> {
     const maybeAPIHandle = await getCalloutManagerAPIHandleIfInstalled(this);
     if (maybeAPIHandle === undefined) {
       return;
@@ -51,11 +51,11 @@ export default class CalloutToggleCommandsPlugin extends Plugin {
   private refreshCalloutWrapCommands(calloutManager: CalloutManagerOwnedHandle): void {
     const { addedCalloutIDs, removedCalloutIDs, newCalloutIDsSet } = getAddedAndRemovedCalloutIDs({
       calloutManager,
-      oldCalloutIDs: this.cachedCalloutIDs,
+      oldCalloutIDs: this.addedCalloutIDs,
     });
     this.removeCalloutWrapCommands(removedCalloutIDs);
     this.addCalloutWrapCommands(addedCalloutIDs);
-    this.cachedCalloutIDs = newCalloutIDsSet;
+    this.addedCalloutIDs = newCalloutIDsSet;
   }
 
   private removeCalloutWrapCommands(calloutIDs: readonly CalloutID[]): void {
@@ -81,7 +81,7 @@ export default class CalloutToggleCommandsPlugin extends Plugin {
     for (const command of allCommands) {
       this.addCommand(command);
     }
-    this.cachedCalloutIDs = new Set(allCalloutIDs);
+    this.addedCalloutIDs = new Set(allCalloutIDs);
   }
 
   /**
