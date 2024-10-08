@@ -7,6 +7,7 @@ import {
 } from "obsidian-callout-manager";
 import { BUILTIN_CALLOUT_IDS } from "./callouts/builtinCallouts";
 import { getAllCommands } from "./commands/allCommands";
+import { logError, logInfo } from "./utils/logger";
 
 declare module "obsidian" {
   interface App {
@@ -19,18 +20,9 @@ declare module "obsidian" {
 
 export default class CalloutToggleCommandsPlugin extends Plugin {
   private calloutManager?: CalloutManager<true>;
-  private name = "Callout Toggle Commands";
-
-  private log(message: string): void {
-    console.log(`${this.name}: ${message}`);
-  }
-
-  private logError(message: string): void {
-    console.error(`${this.name}: ${message}`);
-  }
 
   onload(): void {
-    this.log("Plugin loaded.");
+    logInfo("Plugin loaded.");
 
     this.app.workspace.onLayoutReady(async () => {
       await this.maybeLoadCalloutManager();
@@ -42,7 +34,7 @@ export default class CalloutToggleCommandsPlugin extends Plugin {
     if (isCalloutManagerInstalled(this.app)) {
       const calloutManager = await getApi(this);
       if (calloutManager === undefined) {
-        this.logError("Failed to get Callout Manager API handle.");
+        logError("Failed to get Callout Manager API handle.");
         return;
       }
       this.calloutManager = calloutManager;
@@ -59,7 +51,7 @@ export default class CalloutToggleCommandsPlugin extends Plugin {
 
   private getAllCalloutIDs(): readonly CalloutID[] {
     if (this.calloutManager === undefined) {
-      this.log("Callout Manager not available; using hardcoded list of callout IDs instead");
+      logInfo("Callout Manager not available; using hardcoded list of callout IDs instead");
       return this.getBuiltinCalloutIDs();
     }
     return this.getAllCalloutIDsFromCalloutManager(this.calloutManager);
@@ -68,7 +60,7 @@ export default class CalloutToggleCommandsPlugin extends Plugin {
   private getAllCalloutIDsFromCalloutManager(calloutManager: CalloutManager): readonly CalloutID[] {
     const allCallouts = calloutManager.getCallouts();
     const allCalloutIDs = allCallouts.map((callout) => callout.id);
-    this.log(`Got callout IDs from Callout Manager: ${allCalloutIDs.join(", ")}`);
+    logInfo(`Got callout IDs from Callout Manager: ${allCalloutIDs.join(", ")}`);
     return allCalloutIDs;
   }
 
@@ -77,6 +69,6 @@ export default class CalloutToggleCommandsPlugin extends Plugin {
   }
 
   onunload(): void {
-    this.log("Plugin unloaded.");
+    logInfo("Plugin unloaded.");
   }
 }
