@@ -9,7 +9,7 @@ import { CalloutID } from "obsidian-callout-manager";
  */
 const PLUGIN_ID = "callout-toggle-commands";
 
-export function getFullWrapCalloutCommandID(calloutID: CalloutID): string {
+export function getFullWrapInCalloutCommandID(calloutID: CalloutID): string {
   const partialCommandID = getPartialWrapCalloutCommandID(calloutID);
   return getFullPluginCommandID(partialCommandID);
 }
