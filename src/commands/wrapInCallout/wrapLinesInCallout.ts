@@ -31,5 +31,9 @@ function wrapLinesInCallout(
     wrapSelectedLinesInCallout(editor, calloutID);
     return;
   }
-  wrapCurrentLineInCallout(editor, calloutID, pluginSettingsManager);
+  wrapCurrentLineInCallout({
+    editor,
+    calloutID,
+    shouldSetSelection: pluginSettingsManager.getSetting("shouldSetSelectionAfterCurrentLineWrap"),
+  });
 }

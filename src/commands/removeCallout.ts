@@ -1,4 +1,4 @@
-import { Command, Editor, EditorRange } from "obsidian";
+import { Command, Editor } from "obsidian";
 import { isNonEmptyArray, NonEmptyStringArray } from "../utils/arrayUtils";
 import {
   getCalloutIDAndEffectiveTitle,
@@ -7,13 +7,9 @@ import {
 } from "../utils/calloutTitleUtils";
 import { makeCalloutSelectionCheckCallback } from "../utils/editorCheckCallbackUtils";
 import {
-  CursorPositions,
   getCursorPositions,
-  getNewFromPosition,
-  getNewToPosition,
   getSelectedLinesRangeAndText,
-  SelectedLinesDiff,
-  setSelectionInCorrectDirection,
+  replaceLinesAndAdjustSelection,
 } from "../utils/selectionUtils";
 import { getTextLines } from "../utils/stringUtils";
 
@@ -34,7 +30,7 @@ function removeCalloutFromSelectedLines(editor: Editor): void {
   const { calloutID, effectiveTitle } = getCalloutIDAndEffectiveTitle(selectedLinesText);
   const newLines = getNewLinesAfterRemovingCallout({ calloutID, effectiveTitle, selectedLines });
   const selectedLinesDiff = { oldLines: selectedLines, newLines };
-  replaceCalloutLinesAndAdjustSelection({
+  replaceLinesAndAdjustSelection({
     editor,
     selectedLinesDiff,
     originalCursorPositions,
@@ -78,44 +74,4 @@ function getNewLinesAfterRemovingCalloutWithDefaultTitle(
     return [""];
   }
   return unquotedLinesWithoutHeader;
-}
-
-/**
- * Replaces the selected lines with the given text lines, adjusting the selection after to match the
- * original selection's relative position.
- */
-function replaceCalloutLinesAndAdjustSelection({
-  editor,
-  selectedLinesDiff,
-  originalCursorPositions,
-  selectedLinesRange,
-}: {
-  editor: Editor;
-  selectedLinesDiff: SelectedLinesDiff;
-  originalCursorPositions: CursorPositions;
-  selectedLinesRange: EditorRange;
-}): void {
-  const newText = selectedLinesDiff.newLines.join("\n");
-  editor.replaceRange(newText, selectedLinesRange.from, selectedLinesRange.to);
-  adjustSelectionAfterReplacingCallout({ selectedLinesDiff, originalCursorPositions, editor });
-}
-
-/**
- * Sets the selection after removing the callout from the selected lines, back to the original
- * selection's relative position.
- */
-function adjustSelectionAfterReplacingCallout({
-  selectedLinesDiff,
-  originalCursorPositions,
-  editor,
-}: {
-  selectedLinesDiff: SelectedLinesDiff;
-  originalCursorPositions: CursorPositions;
-  editor: Editor;
-}): void {
-  const { from: oldFrom, to: oldTo } = originalCursorPositions;
-  const newFrom = getNewFromPosition({ oldFrom, selectedLinesDiff });
-  const newTo = getNewToPosition({ oldTo, selectedLinesDiff });
-  const newRange = { from: newFrom, to: newTo };
-  setSelectionInCorrectDirection(editor, originalCursorPositions, newRange);
 }

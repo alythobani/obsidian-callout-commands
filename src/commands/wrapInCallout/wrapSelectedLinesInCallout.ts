@@ -1,4 +1,4 @@
-import { Editor, EditorRange } from "obsidian";
+import { Editor } from "obsidian";
 import { CalloutID } from "obsidian-callout-manager";
 import { NonEmptyStringArray } from "../../utils/arrayUtils";
 import {
@@ -7,13 +7,9 @@ import {
   makeCalloutHeader,
 } from "../../utils/calloutTitleUtils";
 import {
-  CursorPositions,
   getCursorPositions,
-  getNewFromPosition,
-  getNewToPosition,
   getSelectedLinesRangeAndText,
-  SelectedLinesDiff,
-  setSelectionInCorrectDirection,
+  replaceLinesAndAdjustSelection,
 } from "../../utils/selectionUtils";
 import { getTextLines } from "../../utils/stringUtils";
 
@@ -27,10 +23,10 @@ export function wrapSelectedLinesInCallout(editor: Editor, calloutID: CalloutID)
   const { title, rawBodyLines } = getCalloutTitleAndBodyFromSelectedLines(calloutID, selectedLines);
   const newCalloutLines = getNewCalloutLines({ calloutID, title, rawBodyLines });
   const selectedLinesDiff = { oldLines: selectedLines, newLines: newCalloutLines };
-  replaceLinesWithCalloutAndSetSelection({
+  replaceLinesAndAdjustSelection({
     editor,
-    originalCursorPositions,
     selectedLinesDiff,
+    originalCursorPositions,
     selectedLinesRange,
   });
 }
@@ -69,62 +65,4 @@ function getNewCalloutLines({
   const calloutHeader = makeCalloutHeader({ calloutID, title });
   const calloutBodyLines = rawBodyLines.map((line) => `> ${line}`);
   return [calloutHeader, ...calloutBodyLines];
-}
-
-/**
- * Replaces the selected lines with the new callout lines and sets the selection to the appropriate
- * new range.
- */
-function replaceLinesWithCalloutAndSetSelection({
-  editor,
-  originalCursorPositions,
-  selectedLinesDiff,
-  selectedLinesRange,
-}: {
-  editor: Editor;
-  originalCursorPositions: CursorPositions;
-  selectedLinesDiff: SelectedLinesDiff;
-  selectedLinesRange: EditorRange;
-}): void {
-  const { newLines } = selectedLinesDiff;
-  const newText = newLines.join("\n");
-  editor.replaceRange(newText, selectedLinesRange.from, selectedLinesRange.to);
-  setSelectionAfterWrappingLinesInCallout({ editor, originalCursorPositions, selectedLinesDiff });
-}
-
-/**
- * Sets the selection after wrapping the selected lines in a callout.
- */
-function setSelectionAfterWrappingLinesInCallout({
-  editor,
-  originalCursorPositions,
-  selectedLinesDiff,
-}: {
-  editor: Editor;
-  originalCursorPositions: CursorPositions;
-  selectedLinesDiff: SelectedLinesDiff;
-}): void {
-  const newRange = getNewSelectionRangeAfterWrappingLinesInCallout({
-    originalCursorPositions,
-    selectedLinesDiff,
-  });
-  setSelectionInCorrectDirection(editor, originalCursorPositions, newRange);
-}
-
-/**
- * Gets the new selection range after wrapping the selected lines in a callout.
- */
-function getNewSelectionRangeAfterWrappingLinesInCallout({
-  originalCursorPositions,
-  selectedLinesDiff,
-}: {
-  originalCursorPositions: CursorPositions;
-  selectedLinesDiff: SelectedLinesDiff;
-}): EditorRange {
-  const { from: oldFrom, to: oldTo } = originalCursorPositions;
-
-  const newFrom = getNewFromPosition({ oldFrom, selectedLinesDiff });
-  const newTo = getNewToPosition({ oldTo, selectedLinesDiff });
-
-  return { from: newFrom, to: newTo };
 }

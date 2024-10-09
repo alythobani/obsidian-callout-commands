@@ -19,10 +19,47 @@ export interface LineDiff {
 }
 
 /**
+ * Replaces the selected lines with the new lines, and adjusts the editor selection to maintain its
+ * position relative to the original text.
+ */
+export function replaceLinesAndAdjustSelection({
+  editor,
+  selectedLinesDiff,
+  originalCursorPositions,
+  selectedLinesRange,
+}: {
+  editor: Editor;
+  selectedLinesDiff: SelectedLinesDiff;
+  originalCursorPositions: CursorPositions;
+  selectedLinesRange: EditorRange;
+}): void {
+  const newSelectionRange = getNewSelectionRangeAfterReplacingLines({
+    originalCursorPositions,
+    selectedLinesDiff,
+  });
+  const newText = selectedLinesDiff.newLines.join("\n");
+  editor.replaceRange(newText, selectedLinesRange.from, selectedLinesRange.to);
+  setSelectionInCorrectDirection(editor, originalCursorPositions, newSelectionRange);
+}
+
+function getNewSelectionRangeAfterReplacingLines({
+  originalCursorPositions,
+  selectedLinesDiff,
+}: {
+  originalCursorPositions: CursorPositions;
+  selectedLinesDiff: SelectedLinesDiff;
+}): EditorRange {
+  const { from: oldFrom, to: oldTo } = originalCursorPositions;
+  const newFrom = getNewFromPosition({ oldFrom, selectedLinesDiff });
+  const newTo = getNewToPosition({ oldTo, selectedLinesDiff });
+  return { from: newFrom, to: newTo };
+}
+
+/**
  * Gets the new cursor `from` position after the selected lines have been altered, while keeping the
  * relative `from` position within the text the same.
  */
-export function getNewFromPosition({
+function getNewFromPosition({
   oldFrom,
   selectedLinesDiff,
 }: {
@@ -44,7 +81,7 @@ export function getNewFromPosition({
  * Gets the new cursor `to` position after the selected lines have been altered, while keeping the
  * relative `to` position within the text the same.
  */
-export function getNewToPosition({
+function getNewToPosition({
   oldTo,
   selectedLinesDiff,
 }: {
@@ -63,7 +100,7 @@ export function getNewToPosition({
  * Gets the new cursor `ch` position within a given line after it's been altered, while keeping the
  * cursor's relative position in the line the same.
  */
-export function getNewPositionWithinLine({
+function getNewPositionWithinLine({
   oldCh,
   lineDiff,
 }: {
@@ -74,6 +111,29 @@ export function getNewPositionWithinLine({
   const lineLengthDiff = oldLine.length - newLine.length;
   const newCh = Math.clamp(oldCh - lineLengthDiff, 0, newLine.length);
   return newCh;
+}
+
+function setSelectionInCorrectDirection(
+  editor: Editor,
+  originalCursorPositions: CursorPositions,
+  newRange: EditorRange
+): void {
+  const { newAnchor, newHead } = getNewAnchorAndHead(originalCursorPositions, newRange);
+  editor.setSelection(newAnchor, newHead);
+}
+
+function getNewAnchorAndHead(
+  originalCursorPositions: CursorPositions,
+  newRange: EditorRange
+): { newAnchor: EditorPosition; newHead: EditorPosition } {
+  const { from: newFrom, to: newTo } = newRange;
+  return isHeadBeforeAnchor(originalCursorPositions)
+    ? { newAnchor: newTo, newHead: newFrom }
+    : { newAnchor: newFrom, newHead: newTo };
+}
+
+function isHeadBeforeAnchor({ anchor, head }: Pick<CursorPositions, "anchor" | "head">): boolean {
+  return head.line < anchor.line || (head.line === anchor.line && head.ch < anchor.ch);
 }
 
 /**
@@ -103,40 +163,14 @@ export function getCursorPositions(editor: Editor): CursorPositions {
   return { anchor, head, from, to };
 }
 
-export function getAnchorAndHead(editor: Editor): { anchor: EditorPosition; head: EditorPosition } {
+function getAnchorAndHead(editor: Editor): { anchor: EditorPosition; head: EditorPosition } {
   const anchor = editor.getCursor("anchor");
   const head = editor.getCursor("head");
   return { anchor, head };
 }
 
-export function getSelectionRange(editor: Editor): EditorRange {
+function getSelectionRange(editor: Editor): EditorRange {
   const from = editor.getCursor("from");
   const to = editor.getCursor("to");
   return { from, to };
-}
-
-export function setSelectionInCorrectDirection(
-  editor: Editor,
-  originalCursorPositions: CursorPositions,
-  newRange: EditorRange
-): void {
-  const { newAnchor, newHead } = getNewAnchorAndHead(originalCursorPositions, newRange);
-  editor.setSelection(newAnchor, newHead);
-}
-
-export function getNewAnchorAndHead(
-  originalCursorPositions: CursorPositions,
-  newRange: EditorRange
-): { newAnchor: EditorPosition; newHead: EditorPosition } {
-  const { from: newFrom, to: newTo } = newRange;
-  return isHeadBeforeAnchor(originalCursorPositions)
-    ? { newAnchor: newTo, newHead: newFrom }
-    : { newAnchor: newFrom, newHead: newTo };
-}
-
-export function isHeadBeforeAnchor({
-  anchor,
-  head,
-}: Pick<CursorPositions, "anchor" | "head">): boolean {
-  return head.line < anchor.line || (head.line === anchor.line && head.ch < anchor.ch);
 }

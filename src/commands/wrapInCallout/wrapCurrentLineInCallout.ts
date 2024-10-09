@@ -1,25 +1,32 @@
 import { Editor, EditorPosition } from "obsidian";
 import { CalloutID } from "obsidian-callout-manager";
-import { PluginSettingsManager } from "../../pluginSettingsManager";
 import { makeDefaultCalloutHeader } from "../../utils/calloutTitleUtils";
 
 /**
  * Wraps the cursor's current line in a callout.
  */
-export function wrapCurrentLineInCallout(
-  editor: Editor,
-  calloutID: CalloutID,
-  pluginSettingsManager: PluginSettingsManager
-): void {
+export function wrapCurrentLineInCallout({
+  editor,
+  calloutID,
+  shouldSetSelection,
+}: {
+  editor: Editor;
+  calloutID: CalloutID;
+  shouldSetSelection: boolean;
+}): void {
   const cursor = editor.getCursor();
   const { line } = cursor;
   const lineText = editor.getLine(line);
+  const newCalloutText = getNewCalloutText(calloutID, lineText);
+  editor.replaceRange(newCalloutText, { line, ch: 0 }, { line, ch: lineText.length });
+  setSelectionOrCursor({ editor, oldCursor: cursor, lineText, shouldSetSelection });
+}
+
+function getNewCalloutText(calloutID: string, lineText: string): string {
   const calloutHeader = makeDefaultCalloutHeader(calloutID);
   const prependedLine = `> ${lineText}`;
-  const newText = `${calloutHeader}\n${prependedLine}`;
-  editor.replaceRange(newText, { line, ch: 0 }, { line, ch: lineText.length });
-
-  setSelectionOrCursor({ editor, cursor, lineText, pluginSettingsManager });
+  const newCalloutText = `${calloutHeader}\n${prependedLine}`;
+  return newCalloutText;
 }
 
 /**
@@ -28,35 +35,39 @@ export function wrapCurrentLineInCallout(
  */
 function setSelectionOrCursor({
   editor,
-  cursor,
+  oldCursor,
   lineText,
-  pluginSettingsManager,
+  shouldSetSelection,
 }: {
   editor: Editor;
-  cursor: EditorPosition;
+  oldCursor: EditorPosition;
   lineText: string;
-  pluginSettingsManager: PluginSettingsManager;
+  shouldSetSelection: boolean;
 }): void {
-  const shouldSelect = pluginSettingsManager.getSetting("shouldSetSelectionAfterCurrentLineWrap");
-  if (shouldSelect) {
-    setSelection({ editor, cursor, lineText });
+  if (shouldSetSelection) {
+    setSelection({ editor, oldCursor, lineText });
     return;
   }
-  setCursor(editor, cursor);
+  setCursor(editor, oldCursor);
 }
 
+/**
+ * Sets the selection from the start of the callout header to the cursor's original relative
+ * position within the text.
+ */
 function setSelection({
-  cursor,
-  lineText,
   editor,
+  oldCursor: { line: oldLine, ch: oldCh },
+  lineText,
 }: {
-  cursor: EditorPosition;
-  lineText: string;
   editor: Editor;
+  oldCursor: EditorPosition;
+  lineText: string;
 }): void {
-  const newFrom = { line: cursor.line, ch: 0 };
-  const newToCh = Math.min(cursor.ch + 3, lineText.length + 2);
-  const newTo = { line: cursor.line + 1, ch: newToCh };
+  const newFrom = { line: oldLine, ch: 0 };
+  const newLineLength = lineText.length + 2;
+  const newToCh = Math.min(oldCh + 3, newLineLength);
+  const newTo = { line: oldLine + 1, ch: newToCh };
   editor.setSelection(newFrom, newTo);
 }
 
