@@ -1,17 +1,17 @@
 import { CalloutID } from "obsidian-callout-manager";
 
 /**
- * The ID of the plugin.
- *
- * NOTE: This should be kept in sync with the `id` in manifest.json.
- *
- * TODO: is there a way to add a test to ensure this is the case?
+ * Returns the full command ID for wrapping the current line or selected lines in the given callout.
  */
-const PLUGIN_ID = "callout-toggle-commands";
-
-export function getFullWrapLinesInCalloutCommandID(calloutID: CalloutID): string {
+export function getFullWrapLinesInCalloutCommandID({
+  pluginID,
+  calloutID,
+}: {
+  pluginID: string;
+  calloutID: CalloutID;
+}): string {
   const partialCommandID = getPartialWrapLinesInCalloutCommandID(calloutID);
-  return getFullPluginCommandID(partialCommandID);
+  return getFullPluginCommandID(pluginID, partialCommandID);
 }
 
 /**
@@ -24,6 +24,6 @@ export function getPartialWrapLinesInCalloutCommandID(calloutID: CalloutID): str
   return `wrap-lines-in-${calloutID}-callout`;
 }
 
-export function getFullPluginCommandID(commandID: string): string {
-  return `${PLUGIN_ID}:${commandID}`;
+function getFullPluginCommandID(pluginID: string, partialCommandID: string): string {
+  return `${pluginID}:${partialCommandID}`;
 }

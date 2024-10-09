@@ -7,15 +7,16 @@ import {
   getCalloutManagerAPIHandleIfInstalled,
 } from "./callouts/calloutManager";
 import { getFullWrapLinesInCalloutCommandID } from "./commands/commandIDs";
-import { removeCalloutFromSelectedLinesCommand } from "./commands/removeCallout";
+import { REMOVE_CALLOUT_FROM_SELECTED_LINES_COMMAND } from "./commands/removeCallout";
 import { makeWrapLinesInCalloutCommand } from "./commands/wrapInCallout/wrapLinesInCallout";
+import { PluginSettingsManager } from "./pluginSettingsManager";
 import { filterOutElements } from "./utils/arrayUtils";
 
 export class PluginCommandManager {
   calloutManager?: CalloutManagerOwnedHandle;
   addedCommandCalloutIDsSet = new Set<CalloutID>();
 
-  constructor(public plugin: Plugin) {}
+  constructor(private plugin: Plugin, private pluginSettingsManager: PluginSettingsManager) {}
 
   public async setupCommands(): Promise<void> {
     await this.setupCalloutManagerIfInstalled();
@@ -56,7 +57,8 @@ export class PluginCommandManager {
   }
 
   private removeWrapLinesInCalloutCommand(calloutID: CalloutID): void {
-    const fullCommandID = getFullWrapLinesInCalloutCommandID(calloutID);
+    const pluginID = this.plugin.manifest.id;
+    const fullCommandID = getFullWrapLinesInCalloutCommandID({ pluginID, calloutID });
     this.removeCommand({ fullCommandID });
     this.addedCommandCalloutIDsSet.delete(calloutID);
   }
@@ -68,7 +70,7 @@ export class PluginCommandManager {
 
   private addAllCommands(): void {
     this.addAllWrapLinesInCalloutCommands();
-    this.addCommand(removeCalloutFromSelectedLinesCommand);
+    this.addCommand(REMOVE_CALLOUT_FROM_SELECTED_LINES_COMMAND);
   }
 
   private addAllWrapLinesInCalloutCommands(): void {
