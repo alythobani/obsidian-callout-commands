@@ -114,6 +114,9 @@ function setSelectionAfterWrappingLinesInCallout({
   setSelectionInCorrectDirection(editor, originalCursorPositions, newRange);
 }
 
+/**
+ * Gets the new selection range after wrapping the selected lines in a callout.
+ */
 function getNewSelectionRangeAfterWrappingLinesInCallout({
   originalCursorPositions,
   originalSelectedLines,
@@ -129,7 +132,7 @@ function getNewSelectionRangeAfterWrappingLinesInCallout({
 
   // Add 2 characters for the "> " prefix
   const lastBodyLineLength = calloutBodyLines[calloutBodyLines.length - 1]?.length ?? 0;
-  const newToCh = Math.min(originalTo.ch + 2, lastBodyLineLength - 1);
+  const newToCh = Math.min(originalTo.ch + 2, lastBodyLineLength);
 
   const didAddHeaderLine = originalSelectedLines.length === calloutBodyLines.length;
   if (didAddHeaderLine) {
