@@ -1,14 +1,14 @@
 import { Command, Editor } from "obsidian";
 import { CalloutID } from "obsidian-callout-manager";
 import { toTitleCaseWord } from "../../utils/stringUtils";
-import { getPartialWrapInCalloutCommandID } from "../commandIDs";
+import { getPartialWrapLinesInCalloutCommandID } from "../commandIDs";
 import { wrapCurrentLineInCallout } from "./wrapCurrentLineInCallout";
 import { wrapSelectedLinesInCallout } from "./wrapSelectedLinesInCallout";
 
-export function makeWrapInCalloutCommand(calloutID: CalloutID): Command {
+export function makeWrapLinesInCalloutCommand(calloutID: CalloutID): Command {
   const capitalizedKeyword = toTitleCaseWord(calloutID);
   return {
-    id: getPartialWrapInCalloutCommandID(calloutID),
+    id: getPartialWrapLinesInCalloutCommandID(calloutID),
     name: `Wrap Lines in ${capitalizedKeyword} Callout`,
     editorCallback: makeWrapLinesInCalloutEditorCallback(calloutID),
   };

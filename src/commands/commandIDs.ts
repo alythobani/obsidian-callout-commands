@@ -9,8 +9,8 @@ import { CalloutID } from "obsidian-callout-manager";
  */
 const PLUGIN_ID = "callout-toggle-commands";
 
-export function getFullWrapInCalloutCommandID(calloutID: CalloutID): string {
-  const partialCommandID = getPartialWrapInCalloutCommandID(calloutID);
+export function getFullWrapLinesInCalloutCommandID(calloutID: CalloutID): string {
+  const partialCommandID = getPartialWrapLinesInCalloutCommandID(calloutID);
   return getFullPluginCommandID(partialCommandID);
 }
 
@@ -20,7 +20,7 @@ export function getFullWrapInCalloutCommandID(calloutID: CalloutID): string {
  * This is a partial command ID, so it should be combined with the plugin ID to form the full
  * command ID, e.g. when removing the command from the app.
  */
-export function getPartialWrapInCalloutCommandID(calloutID: CalloutID): string {
+export function getPartialWrapLinesInCalloutCommandID(calloutID: CalloutID): string {
   return `wrap-lines-in-${calloutID}-callout`;
 }
 
