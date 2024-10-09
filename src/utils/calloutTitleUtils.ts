@@ -105,17 +105,9 @@ function getTrimmedHeadingTitleIfExists(firstSelectedLine: string): string | und
 }
 
 /**
- * Determines whether the effective title of a callout is a custom title or the default title.
- *
- * @param effectiveTitle The effective title of the callout.
+ * Determines whether the given title is a custom title or the default title for the given callout.
  */
-export function isCustomTitle({
-  calloutID,
-  effectiveTitle,
-}: {
-  calloutID: string;
-  effectiveTitle: string;
-}): boolean {
+export function isCustomTitle({ calloutID, title }: { calloutID: string; title: string }): boolean {
   const defaultTitle = getDefaultCalloutTitle(calloutID);
-  return effectiveTitle !== defaultTitle;
+  return title !== defaultTitle;
 }

@@ -1,6 +1,6 @@
-import { Editor, EditorPosition, EditorRange } from "obsidian";
+import { Editor, EditorRange } from "obsidian";
 import { CalloutID } from "obsidian-callout-manager";
-import { getLastElement, NonEmptyStringArray } from "../../utils/arrayUtils";
+import { NonEmptyStringArray } from "../../utils/arrayUtils";
 import {
   getCustomHeadingTitleIfExists,
   getDefaultCalloutTitle,
@@ -9,7 +9,8 @@ import {
 import {
   CursorPositions,
   getCursorPositions,
-  getNewPositionWithinLine,
+  getNewFromPosition,
+  getNewToPosition,
   getSelectedLinesRangeAndText,
   SelectedLinesDiff,
   setSelectionInCorrectDirection,
@@ -120,52 +121,10 @@ function getNewSelectionRangeAfterWrappingLinesInCallout({
   originalCursorPositions: CursorPositions;
   selectedLinesDiff: SelectedLinesDiff;
 }): EditorRange {
-  const { from: originalFrom, to: originalTo } = originalCursorPositions;
+  const { from: oldFrom, to: oldTo } = originalCursorPositions;
 
-  const didAddHeaderLine = wasNewLineAdded(selectedLinesDiff);
-  const newFrom = getNewFromPosition({ didAddHeaderLine, originalFrom, selectedLinesDiff });
-  const newTo = getNewToPosition({ didAddHeaderLine, originalTo, selectedLinesDiff });
+  const newFrom = getNewFromPosition({ oldFrom, selectedLinesDiff });
+  const newTo = getNewToPosition({ oldTo, selectedLinesDiff });
 
   return { from: newFrom, to: newTo };
-}
-
-function wasNewLineAdded(selectedLinesDiff: SelectedLinesDiff): boolean {
-  const { oldLines, newLines } = selectedLinesDiff;
-  return newLines.length > oldLines.length;
-}
-
-function getNewFromPosition({
-  didAddHeaderLine,
-  originalFrom,
-  selectedLinesDiff,
-}: {
-  didAddHeaderLine: boolean;
-  originalFrom: EditorPosition;
-  selectedLinesDiff: SelectedLinesDiff;
-}): { line: number; ch: number } {
-  if (didAddHeaderLine) {
-    // Select from the start of the header line if we added a new header line
-    return { line: originalFrom.line, ch: 0 };
-  }
-  const { oldLines, newLines } = selectedLinesDiff;
-  const lineDiff = { oldLine: oldLines[0], newLine: newLines[0] };
-  const newFromCh = getNewPositionWithinLine({ oldCh: originalFrom.ch, lineDiff });
-  return { line: originalFrom.line, ch: newFromCh };
-}
-
-function getNewToPosition({
-  didAddHeaderLine,
-  originalTo,
-  selectedLinesDiff,
-}: {
-  didAddHeaderLine: boolean;
-  originalTo: EditorPosition;
-  selectedLinesDiff: SelectedLinesDiff;
-}): EditorPosition {
-  const { oldLines, newLines } = selectedLinesDiff;
-  const lastLineDiff = { oldLine: getLastElement(oldLines), newLine: getLastElement(newLines) };
-  const newToCh = getNewPositionWithinLine({ oldCh: originalTo.ch, lineDiff: lastLineDiff });
-  const newToLine = originalTo.line + (didAddHeaderLine ? 1 : 0);
-  const newTo = { line: newToLine, ch: newToCh };
-  return newTo;
 }

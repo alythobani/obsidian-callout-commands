@@ -1,5 +1,5 @@
 import { Editor, EditorPosition, EditorRange } from "obsidian";
-import { NonEmptyStringArray } from "./arrayUtils";
+import { getLastElement, NonEmptyStringArray } from "./arrayUtils";
 
 export interface CursorPositions {
   anchor: EditorPosition;
@@ -16,6 +16,47 @@ export interface SelectedLinesDiff {
 export interface LineDiff {
   oldLine: string;
   newLine: string;
+}
+
+/**
+ * Gets the new cursor `from` position after the selected lines have been altered, while keeping the
+ * relative `from` position within the text the same.
+ */
+export function getNewFromPosition({
+  oldFrom,
+  selectedLinesDiff,
+}: {
+  oldFrom: EditorPosition;
+  selectedLinesDiff: SelectedLinesDiff;
+}): EditorPosition {
+  const { oldLines, newLines } = selectedLinesDiff;
+  const didAddOrRemoveHeaderLine = oldLines.length !== newLines.length;
+  if (didAddOrRemoveHeaderLine) {
+    // Select from the start of the header line if we added a new header line
+    return { line: oldFrom.line, ch: 0 };
+  }
+  const lineDiff = { oldLine: oldLines[0], newLine: newLines[0] };
+  const newFromCh = getNewPositionWithinLine({ oldCh: oldFrom.ch, lineDiff });
+  return { line: oldFrom.line, ch: newFromCh };
+}
+
+/**
+ * Gets the new cursor `to` position after the selected lines have been altered, while keeping the
+ * relative `to` position within the text the same.
+ */
+export function getNewToPosition({
+  oldTo,
+  selectedLinesDiff,
+}: {
+  oldTo: EditorPosition;
+  selectedLinesDiff: SelectedLinesDiff;
+}): EditorPosition {
+  const { oldLines, newLines } = selectedLinesDiff;
+  const numLinesDiff = newLines.length - oldLines.length; // we may have added or removed a header line
+  const newToLine = oldTo.line + numLinesDiff;
+  const lastLineDiff = { oldLine: getLastElement(oldLines), newLine: getLastElement(newLines) };
+  const newToCh = getNewPositionWithinLine({ oldCh: oldTo.ch, lineDiff: lastLineDiff });
+  return { line: newToLine, ch: newToCh };
 }
 
 /**

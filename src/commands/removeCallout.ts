@@ -1,5 +1,5 @@
-import { Command, Editor, EditorPosition, EditorRange } from "obsidian";
-import { getLastElement, isNonEmptyArray, NonEmptyStringArray } from "../utils/arrayUtils";
+import { Command, Editor, EditorRange } from "obsidian";
+import { isNonEmptyArray, NonEmptyStringArray } from "../utils/arrayUtils";
 import {
   getCalloutIDAndEffectiveTitle,
   isCustomTitle,
@@ -9,8 +9,10 @@ import { makeCalloutSelectionCheckCallback } from "../utils/editorCheckCallbackU
 import {
   CursorPositions,
   getCursorPositions,
-  getNewPositionWithinLine,
+  getNewFromPosition,
+  getNewToPosition,
   getSelectedLinesRangeAndText,
+  SelectedLinesDiff,
   setSelectionInCorrectDirection,
 } from "../utils/selectionUtils";
 import { getTextLines } from "../utils/stringUtils";
@@ -28,78 +30,54 @@ export const REMOVE_CALLOUT_FROM_SELECTED_LINES_COMMAND: Command = {
 function removeCalloutFromSelectedLines(editor: Editor): void {
   const originalCursorPositions = getCursorPositions(editor);
   const { selectedLinesRange, selectedLinesText } = getSelectedLinesRangeAndText(editor); // Full selected lines range and text
-  const selectedTextLines = getTextLines(selectedLinesText);
+  const selectedLines = getTextLines(selectedLinesText);
   const { calloutID, effectiveTitle } = getCalloutIDAndEffectiveTitle(selectedLinesText);
-  if (isCustomTitle({ calloutID, effectiveTitle })) {
-    removeCalloutWithCustomTitle({
-      selectedTextLines,
-      editor,
-      originalCursorPositions,
-      selectedLinesRange,
-      customTitle: effectiveTitle,
-    });
-    return;
-  }
-  removeCalloutWithDefaultTitle({
-    selectedTextLines,
+  const newLines = getNewLinesAfterRemovingCallout({ calloutID, effectiveTitle, selectedLines });
+  const selectedLinesDiff = { oldLines: selectedLines, newLines };
+  replaceCalloutLinesAndAdjustSelection({
     editor,
+    selectedLinesDiff,
     originalCursorPositions,
     selectedLinesRange,
   });
-  return;
 }
 
 /**
- * Removes the callout from the selected lines, retaining the custom title if there is one.
+ * Gets the new lines after removing the callout from the selected lines.
  */
-function removeCalloutWithCustomTitle({
-  selectedTextLines,
-  editor,
-  originalCursorPositions,
-  selectedLinesRange,
-  customTitle,
+function getNewLinesAfterRemovingCallout({
+  calloutID,
+  effectiveTitle,
+  selectedLines,
 }: {
-  selectedTextLines: [string, ...string[]];
-  editor: Editor;
-  originalCursorPositions: CursorPositions;
-  selectedLinesRange: EditorRange;
-  customTitle: string;
-}): void {
-  const customTitleHeadingLine = makeH6Line(customTitle);
-  const unquotedLines = selectedTextLines.slice(1).map((line) => line.replace(/^> /, ""));
-  const newTextLines = [customTitleHeadingLine, ...unquotedLines];
-  replaceCalloutLinesAndAdjustSelection({
-    editor,
-    selectedTextLines,
-    newTextLines,
-    didRemoveHeader: false,
-    originalCursorPositions,
-    selectedLinesRange,
-  });
+  calloutID: string;
+  effectiveTitle: string;
+  selectedLines: NonEmptyStringArray;
+}): NonEmptyStringArray {
+  if (isCustomTitle({ calloutID, title: effectiveTitle })) {
+    return getNewLinesAfterRemovingCalloutWithCustomTitle(effectiveTitle, selectedLines);
+  }
+  return getNewLinesAfterRemovingCalloutWithDefaultTitle(selectedLines);
 }
 
-function removeCalloutWithDefaultTitle({
-  selectedTextLines,
-  editor,
-  originalCursorPositions,
-  selectedLinesRange,
-}: {
-  selectedTextLines: NonEmptyStringArray;
-  editor: Editor;
-  originalCursorPositions: CursorPositions;
-  selectedLinesRange: EditorRange;
-}): void {
-  const linesWithoutHeader = selectedTextLines.slice(1);
+function getNewLinesAfterRemovingCalloutWithCustomTitle(
+  customTitle: string,
+  selectedLines: NonEmptyStringArray
+): NonEmptyStringArray {
+  const customTitleHeadingLine = makeH6Line(customTitle);
+  const unquotedLines = selectedLines.slice(1).map((line) => line.replace(/^> /, ""));
+  return [customTitleHeadingLine, ...unquotedLines];
+}
+
+function getNewLinesAfterRemovingCalloutWithDefaultTitle(
+  selectedLines: NonEmptyStringArray
+): NonEmptyStringArray {
+  const linesWithoutHeader = selectedLines.slice(1);
   const unquotedLinesWithoutHeader = linesWithoutHeader.map((line) => line.replace(/^> /, ""));
-  replaceCalloutLinesAndAdjustSelection({
-    editor,
-    selectedTextLines,
-    newTextLines: unquotedLinesWithoutHeader,
-    didRemoveHeader: true,
-    originalCursorPositions,
-    selectedLinesRange,
-  });
-  return;
+  if (!isNonEmptyArray(unquotedLinesWithoutHeader)) {
+    return [""];
+  }
+  return unquotedLinesWithoutHeader;
 }
 
 /**
@@ -108,39 +86,18 @@ function removeCalloutWithDefaultTitle({
  */
 function replaceCalloutLinesAndAdjustSelection({
   editor,
-  selectedTextLines,
-  newTextLines,
-  didRemoveHeader,
+  selectedLinesDiff,
   originalCursorPositions,
   selectedLinesRange,
 }: {
   editor: Editor;
-  selectedTextLines: NonEmptyStringArray;
-  newTextLines: readonly string[];
-  didRemoveHeader: boolean;
+  selectedLinesDiff: SelectedLinesDiff;
   originalCursorPositions: CursorPositions;
   selectedLinesRange: EditorRange;
 }): void {
-  if (!isNonEmptyArray(newTextLines)) {
-    // Must have removed the header line completely (default title) and there are no other lines
-    editor.replaceRange("", selectedLinesRange.from, selectedLinesRange.to);
-    editor.setSelection(selectedLinesRange.from, selectedLinesRange.from);
-    return;
-  }
-
-  const newText = newTextLines.join("\n");
-
-  // Replace the selected lines with the unquoted text
+  const newText = selectedLinesDiff.newLines.join("\n");
   editor.replaceRange(newText, selectedLinesRange.from, selectedLinesRange.to);
-
-  // Set the selection to the same relative position as before, but with the new text
-  adjustSelectionAfterReplacingCallout({
-    selectedTextLines,
-    newTextLines,
-    originalCursorPositions,
-    didRemoveHeader,
-    editor,
-  });
+  adjustSelectionAfterReplacingCallout({ selectedLinesDiff, originalCursorPositions, editor });
 }
 
 /**
@@ -148,61 +105,17 @@ function replaceCalloutLinesAndAdjustSelection({
  * selection's relative position.
  */
 function adjustSelectionAfterReplacingCallout({
-  selectedTextLines,
-  newTextLines,
+  selectedLinesDiff,
   originalCursorPositions,
-  didRemoveHeader,
   editor,
 }: {
-  selectedTextLines: NonEmptyStringArray;
-  newTextLines: NonEmptyStringArray;
+  selectedLinesDiff: SelectedLinesDiff;
   originalCursorPositions: CursorPositions;
-  didRemoveHeader: boolean;
   editor: Editor;
 }): void {
-  const { from: originalFrom, to: originalTo } = originalCursorPositions;
-  const newFrom = getNewFromPosition({
-    didRemoveHeader,
-    originalFrom,
-    selectedTextLines,
-    newTextLines,
-  });
-  const newTo = getNewToPosition(originalTo, selectedTextLines, newTextLines, didRemoveHeader);
+  const { from: oldFrom, to: oldTo } = originalCursorPositions;
+  const newFrom = getNewFromPosition({ oldFrom, selectedLinesDiff });
+  const newTo = getNewToPosition({ oldTo, selectedLinesDiff });
   const newRange = { from: newFrom, to: newTo };
   setSelectionInCorrectDirection(editor, originalCursorPositions, newRange);
-}
-
-function getNewFromPosition({
-  didRemoveHeader,
-  originalFrom,
-  selectedTextLines,
-  newTextLines,
-}: {
-  didRemoveHeader: boolean;
-  originalFrom: EditorPosition;
-  selectedTextLines: NonEmptyStringArray;
-  newTextLines: NonEmptyStringArray;
-}): EditorPosition {
-  const { line, ch: oldCh } = originalFrom;
-  if (didRemoveHeader) {
-    return { line, ch: 0 };
-  }
-  const lineDiff = { oldLine: selectedTextLines[0], newLine: newTextLines[0] };
-  const newFromCh = getNewPositionWithinLine({ oldCh, lineDiff });
-  return { line, ch: newFromCh };
-}
-
-function getNewToPosition(
-  originalTo: EditorPosition,
-  selectedTextLines: NonEmptyStringArray,
-  newTextLines: NonEmptyStringArray,
-  didRemoveHeader: boolean
-): EditorPosition {
-  const oldLine = getLastElement(selectedTextLines);
-  const newToCh = getNewPositionWithinLine({
-    oldCh: originalTo.ch,
-    lineDiff: { oldLine, newLine: getLastElement(newTextLines) },
-  });
-  const newTo = { line: originalTo.line - (didRemoveHeader ? 1 : 0), ch: newToCh };
-  return newTo;
 }
