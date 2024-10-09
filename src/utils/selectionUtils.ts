@@ -1,10 +1,16 @@
 import { Editor, EditorPosition, EditorRange } from "obsidian";
+import { NonEmptyStringArray } from "./arrayUtils";
 
 export interface CursorPositions {
   anchor: EditorPosition;
   head: EditorPosition;
   from: EditorPosition;
   to: EditorPosition;
+}
+
+export interface SelectedLinesDiff {
+  oldLines: NonEmptyStringArray;
+  newLines: NonEmptyStringArray;
 }
 
 export interface LineDiff {
@@ -34,10 +40,13 @@ export function getNewPositionWithinLine({
  * selected line to the end of the last selected line (regardless of where in
  * the line each selection boundary is).
  */
-export function getSelectedLinesRangeAndText(editor: Editor): { range: EditorRange; text: string } {
+export function getSelectedLinesRangeAndText(editor: Editor): {
+  selectedLinesRange: EditorRange;
+  selectedLinesText: string;
+} {
   const { from, to } = getSelectedLinesRange(editor);
   const text = editor.getRange(from, to);
-  return { range: { from, to }, text };
+  return { selectedLinesRange: { from, to }, selectedLinesText: text };
 }
 
 function getSelectedLinesRange(editor: Editor): EditorRange {

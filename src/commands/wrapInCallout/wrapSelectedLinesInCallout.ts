@@ -1,6 +1,6 @@
-import { Editor, EditorRange } from "obsidian";
+import { Editor, EditorPosition, EditorRange } from "obsidian";
 import { CalloutID } from "obsidian-callout-manager";
-import { getLastElement, isNonEmptyArray, NonEmptyStringArray } from "../../utils/arrayUtils";
+import { getLastElement, NonEmptyStringArray } from "../../utils/arrayUtils";
 import {
   getCustomHeadingTitleIfExists,
   getDefaultCalloutTitle,
@@ -11,7 +11,7 @@ import {
   getCursorPositions,
   getNewPositionWithinLine,
   getSelectedLinesRangeAndText,
-  LineDiff,
+  SelectedLinesDiff,
   setSelectionInCorrectDirection,
 } from "../../utils/selectionUtils";
 import { getTextLines } from "../../utils/stringUtils";
@@ -21,20 +21,16 @@ import { getTextLines } from "../../utils/stringUtils";
  */
 export function wrapSelectedLinesInCallout(editor: Editor, calloutID: CalloutID): void {
   const originalCursorPositions = getCursorPositions(editor); // Save cursor positions before editing
-  const { range: selectedLinesRange, text: selectedText } = getSelectedLinesRangeAndText(editor);
-  const selectedLines = getTextLines(selectedText);
-  const { title, rawBodyLines } = getCalloutTitleAndRawBodyLinesFromSelectedLines(
-    selectedLines,
-    calloutID
-  );
-  wrapLinesInCallout({
+  const { selectedLinesRange, selectedLinesText } = getSelectedLinesRangeAndText(editor);
+  const selectedLines = getTextLines(selectedLinesText);
+  const { title, rawBodyLines } = getCalloutTitleAndBodyFromSelectedLines(calloutID, selectedLines);
+  const newCalloutLines = getNewCalloutLines({ calloutID, title, rawBodyLines });
+  const selectedLinesDiff = { oldLines: selectedLines, newLines: newCalloutLines };
+  replaceLinesWithCalloutAndSetSelection({
     editor,
-    calloutID,
     originalCursorPositions,
-    selectedLines,
+    selectedLinesDiff,
     selectedLinesRange,
-    title,
-    rawBodyLines,
   });
 }
 
@@ -44,9 +40,9 @@ export function wrapSelectedLinesInCallout(editor: Editor, calloutID: CalloutID)
  * as the body. Otherwise, the default callout title is used, and all the selected lines are used as
  * the body.
  */
-function getCalloutTitleAndRawBodyLinesFromSelectedLines(
-  selectedLines: NonEmptyStringArray,
-  calloutID: CalloutID
+function getCalloutTitleAndBodyFromSelectedLines(
+  calloutID: CalloutID,
+  selectedLines: NonEmptyStringArray
 ): { title: string; rawBodyLines: string[] } {
   const [firstSelectedLine, ...restSelectedLines] = selectedLines;
   const maybeHeadingTitle = getCustomHeadingTitleIfExists({ firstSelectedLine });
@@ -58,37 +54,41 @@ function getCalloutTitleAndRawBodyLinesFromSelectedLines(
 }
 
 /**
- * Wraps the selected lines in a callout.
+ * Gets the new callout lines to replace the selected lines with.
  */
-function wrapLinesInCallout({
-  editor,
+function getNewCalloutLines({
   calloutID,
-  originalCursorPositions,
-  selectedLines,
-  selectedLinesRange,
   title,
   rawBodyLines,
 }: {
-  editor: Editor;
   calloutID: CalloutID;
-  originalCursorPositions: CursorPositions;
-  selectedLines: NonEmptyStringArray;
-  selectedLinesRange: EditorRange;
   title: string;
   rawBodyLines: string[];
-}): void {
-  const calloutBodyLines = rawBodyLines.map((line) => `> ${line}`);
-  const calloutBody = calloutBodyLines.join("\n");
+}): NonEmptyStringArray {
   const calloutHeader = makeCalloutHeader({ calloutID, title });
-  const newText = `${calloutHeader}\n${calloutBody}`;
+  const calloutBodyLines = rawBodyLines.map((line) => `> ${line}`);
+  return [calloutHeader, ...calloutBodyLines];
+}
+
+/**
+ * Replaces the selected lines with the new callout lines and sets the selection to the appropriate
+ * new range.
+ */
+function replaceLinesWithCalloutAndSetSelection({
+  editor,
+  originalCursorPositions,
+  selectedLinesDiff,
+  selectedLinesRange,
+}: {
+  editor: Editor;
+  originalCursorPositions: CursorPositions;
+  selectedLinesDiff: SelectedLinesDiff;
+  selectedLinesRange: EditorRange;
+}): void {
+  const { newLines } = selectedLinesDiff;
+  const newText = newLines.join("\n");
   editor.replaceRange(newText, selectedLinesRange.from, selectedLinesRange.to);
-  setSelectionAfterWrappingLinesInCallout({
-    editor,
-    originalCursorPositions,
-    originalSelectedLines: selectedLines,
-    calloutHeader,
-    calloutBodyLines,
-  });
+  setSelectionAfterWrappingLinesInCallout({ editor, originalCursorPositions, selectedLinesDiff });
 }
 
 /**
@@ -97,21 +97,15 @@ function wrapLinesInCallout({
 function setSelectionAfterWrappingLinesInCallout({
   editor,
   originalCursorPositions,
-  originalSelectedLines,
-  calloutHeader,
-  calloutBodyLines,
+  selectedLinesDiff,
 }: {
   editor: Editor;
   originalCursorPositions: CursorPositions;
-  originalSelectedLines: NonEmptyStringArray;
-  calloutHeader: string;
-  calloutBodyLines: string[];
+  selectedLinesDiff: SelectedLinesDiff;
 }): void {
   const newRange = getNewSelectionRangeAfterWrappingLinesInCallout({
     originalCursorPositions,
-    originalSelectedLines,
-    calloutHeader,
-    calloutBodyLines,
+    selectedLinesDiff,
   });
   setSelectionInCorrectDirection(editor, originalCursorPositions, newRange);
 }
@@ -121,67 +115,57 @@ function setSelectionAfterWrappingLinesInCallout({
  */
 function getNewSelectionRangeAfterWrappingLinesInCallout({
   originalCursorPositions,
-  originalSelectedLines,
-  calloutHeader,
-  calloutBodyLines,
+  selectedLinesDiff,
 }: {
   originalCursorPositions: CursorPositions;
-  originalSelectedLines: NonEmptyStringArray;
-  calloutHeader: string;
-  calloutBodyLines: string[];
+  selectedLinesDiff: SelectedLinesDiff;
 }): EditorRange {
   const { from: originalFrom, to: originalTo } = originalCursorPositions;
 
-  const lastLineDiff = getLastLineDiff(originalSelectedLines, calloutHeader, calloutBodyLines);
-  const newToCh = getNewPositionWithinLine({ oldCh: originalTo.ch, lineDiff: lastLineDiff });
-
-  // If all selected lines were used as the callout body, we added a new header line above them
-  const didAddHeaderLine = originalSelectedLines.length === calloutBodyLines.length;
-
-  const newToLine = originalTo.line + (didAddHeaderLine ? 1 : 0);
-  const newTo = { line: newToLine, ch: newToCh };
-
-  const newFrom = getNewFromPosition({
-    didAddHeaderLine,
-    originalFrom,
-    originalSelectedLines,
-    calloutHeader,
-  });
+  const didAddHeaderLine = wasNewLineAdded(selectedLinesDiff);
+  const newFrom = getNewFromPosition({ didAddHeaderLine, originalFrom, selectedLinesDiff });
+  const newTo = getNewToPosition({ didAddHeaderLine, originalTo, selectedLinesDiff });
 
   return { from: newFrom, to: newTo };
 }
 
-function getLastLineDiff(
-  originalSelectedLines: NonEmptyStringArray,
-  calloutHeader: string,
-  calloutBodyLines: string[]
-): LineDiff {
-  const oldLine = getLastElement(originalSelectedLines);
-  const newLine = isNonEmptyArray(calloutBodyLines)
-    ? getLastElement(calloutBodyLines)
-    : // The header line is the only (and thus last) line in the callout
-      calloutHeader;
-  return { oldLine, newLine };
+function wasNewLineAdded(selectedLinesDiff: SelectedLinesDiff): boolean {
+  const { oldLines, newLines } = selectedLinesDiff;
+  return newLines.length > oldLines.length;
 }
 
 function getNewFromPosition({
   didAddHeaderLine,
   originalFrom,
-  originalSelectedLines,
-  calloutHeader,
+  selectedLinesDiff,
 }: {
   didAddHeaderLine: boolean;
-  originalFrom: { line: number; ch: number };
-  originalSelectedLines: NonEmptyStringArray;
-  calloutHeader: string;
+  originalFrom: EditorPosition;
+  selectedLinesDiff: SelectedLinesDiff;
 }): { line: number; ch: number } {
   if (didAddHeaderLine) {
     // Select from the start of the header line if we added a new header line
     return { line: originalFrom.line, ch: 0 };
   }
-  const newFromCh = getNewPositionWithinLine({
-    oldCh: originalFrom.ch,
-    lineDiff: { oldLine: originalSelectedLines[0], newLine: calloutHeader },
-  });
+  const { oldLines, newLines } = selectedLinesDiff;
+  const lineDiff = { oldLine: oldLines[0], newLine: newLines[0] };
+  const newFromCh = getNewPositionWithinLine({ oldCh: originalFrom.ch, lineDiff });
   return { line: originalFrom.line, ch: newFromCh };
+}
+
+function getNewToPosition({
+  didAddHeaderLine,
+  originalTo,
+  selectedLinesDiff,
+}: {
+  didAddHeaderLine: boolean;
+  originalTo: EditorPosition;
+  selectedLinesDiff: SelectedLinesDiff;
+}): EditorPosition {
+  const { oldLines, newLines } = selectedLinesDiff;
+  const lastLineDiff = { oldLine: getLastElement(oldLines), newLine: getLastElement(newLines) };
+  const newToCh = getNewPositionWithinLine({ oldCh: originalTo.ch, lineDiff: lastLineDiff });
+  const newToLine = originalTo.line + (didAddHeaderLine ? 1 : 0);
+  const newTo = { line: newToLine, ch: newToCh };
+  return newTo;
 }
