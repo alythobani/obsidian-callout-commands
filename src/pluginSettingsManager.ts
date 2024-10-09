@@ -40,12 +40,10 @@ export class PluginSettingsManager extends PluginSettingTab {
 
     containerEl.empty();
 
-    containerEl.createEl("h2", { text: `${this.plugin.manifest.name} - Settings` });
-
     new Setting(containerEl)
-      .setName("Always Set Selection After Wrapping In Callout")
+      .setName("Select text after inserting callout")
       .setDesc(
-        "Whether to auto-select callout text after wrapping, even if no text was selected before." +
+        "Whether to select a callout's text after insertion, even if no text was selected before." +
           " This can be useful if you want to be able to run" +
           ` '${REMOVE_CALLOUT_FROM_SELECTED_LINES_COMMAND.name}' immediately afterwards.`
       )

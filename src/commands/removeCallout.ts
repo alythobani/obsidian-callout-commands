@@ -15,7 +15,7 @@ import { getTextLines } from "../utils/stringUtils";
 
 export const REMOVE_CALLOUT_FROM_SELECTED_LINES_COMMAND: Command = {
   id: "remove-callout-from-selected-lines",
-  name: "Remove Callout from Selected Lines",
+  name: "Remove callout from selected lines",
   editorCheckCallback: makeCalloutSelectionCheckCallback(removeCalloutFromSelectedLines),
 };
 
