@@ -31,7 +31,7 @@ export function makeCalloutSelectionCheckCallback(
 ): EditorCheckCallback {
   return (checking, editor, _ctx) => {
     if (!editor.somethingSelected()) return false; // Only show the command if text is selected
-    const { selectedLinesText: selectedLinesText } = getSelectedLinesRangeAndText(editor);
+    const { selectedLinesText } = getSelectedLinesRangeAndText(editor);
     if (!CALLOUT_HEADER_REGEX.test(selectedLinesText)) return false; // Only show the command if the selected text is a callout
     return showOrRunCommand(editorAction, editor, checking);
   };
