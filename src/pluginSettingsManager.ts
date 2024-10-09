@@ -31,8 +31,8 @@ export class PluginSettingsManager extends PluginSettingTab {
     this.plugin.addSettingTab(this);
   }
 
-  public getShouldSetSelectionAfterCurrentLineWrap(): boolean {
-    return this.settings.shouldSetSelectionAfterCurrentLineWrap;
+  public getSetting(settingKey: keyof PluginSettings): PluginSettings[keyof PluginSettings] {
+    return this.settings[settingKey];
   }
 
   display(): void {

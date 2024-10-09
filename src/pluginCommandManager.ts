@@ -79,7 +79,10 @@ export class PluginCommandManager {
   }
 
   private addWrapLinesInCalloutCommand(calloutID: CalloutID): void {
-    const wrapLinesInCalloutCommand = makeWrapLinesInCalloutCommand(calloutID);
+    const wrapLinesInCalloutCommand = makeWrapLinesInCalloutCommand(
+      calloutID,
+      this.pluginSettingsManager
+    );
     this.addCommand(wrapLinesInCalloutCommand);
     this.addedCommandCalloutIDsSet.add(calloutID);
   }
