@@ -8,7 +8,7 @@ import {
 } from "./callouts/calloutManager";
 import { getFullWrapLinesInCalloutCommandID } from "./commands/commandIDs";
 import { removeCalloutFromSelectedLinesCommand } from "./commands/removeCallout";
-import { makeWrapLinesInCalloutCommand } from "./commands/wrapInCallout/wrapInCallout";
+import { makeWrapLinesInCalloutCommand } from "./commands/wrapInCallout/wrapLinesInCallout";
 import { filterOutElements } from "./utils/arrayUtils";
 
 export class PluginCommandManager {

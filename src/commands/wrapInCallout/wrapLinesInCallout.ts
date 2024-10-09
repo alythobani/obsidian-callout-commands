@@ -5,17 +5,17 @@ import { getPartialWrapLinesInCalloutCommandID } from "../commandIDs";
 import { wrapCurrentLineInCallout } from "./wrapCurrentLineInCallout";
 import { wrapSelectedLinesInCallout } from "./wrapSelectedLinesInCallout";
 
+/**
+ * Makes a command that wraps the current line, or selected lines if there are any, in the given
+ * callout.
+ */
 export function makeWrapLinesInCalloutCommand(calloutID: CalloutID): Command {
   const capitalizedKeyword = toTitleCaseWord(calloutID);
   return {
     id: getPartialWrapLinesInCalloutCommandID(calloutID),
     name: `Wrap Lines in ${capitalizedKeyword} Callout`,
-    editorCallback: makeWrapLinesInCalloutEditorCallback(calloutID),
+    editorCallback: (editor) => wrapLinesInCallout(editor, calloutID),
   };
-}
-
-function makeWrapLinesInCalloutEditorCallback(calloutID: CalloutID): (editor: Editor) => void {
-  return (editor: Editor) => wrapLinesInCallout(editor, calloutID);
 }
 
 function wrapLinesInCallout(editor: Editor, calloutID: CalloutID): void {
