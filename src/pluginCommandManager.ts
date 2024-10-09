@@ -57,7 +57,7 @@ export class PluginCommandManager {
 
   private removeWrapInCalloutCommand(calloutID: CalloutID): void {
     const fullCommandID = getFullWrapInCalloutCommandID(calloutID);
-    this.removePluginCommand({ fullCommandID });
+    this.removeCommand({ fullCommandID });
     this.addedCommandCalloutIDsSet.delete(calloutID);
   }
 
@@ -68,7 +68,7 @@ export class PluginCommandManager {
 
   private addAllCommands(): void {
     this.addAllWrapInCalloutCommands();
-    this.addPluginCommand(removeCalloutFromSelectedLinesCommand);
+    this.addCommand(removeCalloutFromSelectedLinesCommand);
   }
 
   private addAllWrapInCalloutCommands(): void {
@@ -78,15 +78,15 @@ export class PluginCommandManager {
 
   private addWrapInCalloutCommand(calloutID: CalloutID): void {
     const wrapInCalloutCommand = makeWrapInCalloutCommand(calloutID);
-    this.addPluginCommand(wrapInCalloutCommand);
+    this.addCommand(wrapInCalloutCommand);
     this.addedCommandCalloutIDsSet.add(calloutID);
   }
 
-  private addPluginCommand(command: Command): void {
+  private addCommand(command: Command): void {
     this.plugin.addCommand(command);
   }
 
-  private removePluginCommand({ fullCommandID }: { fullCommandID: string }): void {
+  private removeCommand({ fullCommandID }: { fullCommandID: string }): void {
     this.plugin.app.commands.removeCommand(fullCommandID);
   }
 }
