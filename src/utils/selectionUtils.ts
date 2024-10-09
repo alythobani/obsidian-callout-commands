@@ -7,6 +7,28 @@ export interface CursorPositions {
   to: EditorPosition;
 }
 
+export interface LineDiff {
+  oldLine: string;
+  newLine: string;
+}
+
+/**
+ * Gets the new cursor `ch` position within a given line after it's been altered, while keeping the
+ * cursor's relative position in the line the same.
+ */
+export function getNewPositionWithinLine({
+  oldCh,
+  lineDiff,
+}: {
+  oldCh: number;
+  lineDiff: LineDiff;
+}): number {
+  const { oldLine, newLine } = lineDiff;
+  const lineLengthDiff = oldLine.length - newLine.length;
+  const newCh = Math.clamp(oldCh - lineLengthDiff, 0, newLine.length);
+  return newCh;
+}
+
 /**
  * Returns the range and text of the selected lines, from the start of the first
  * selected line to the end of the last selected line (regardless of where in

@@ -17,6 +17,13 @@ export default tseslint.config(
     },
     rules: {
       "@typescript-eslint/explicit-function-return-type": "error",
+      "@typescript-eslint/restrict-template-expressions": [
+        "error",
+        {
+          allowBoolean: true,
+          allowNumber: true,
+        },
+      ],
       "@typescript-eslint/no-confusing-void-expression": ["error", { ignoreArrowShorthand: true }],
       "@typescript-eslint/no-non-null-assertion": "error",
       "@typescript-eslint/no-unused-vars": [

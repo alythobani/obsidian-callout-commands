@@ -1,5 +1,5 @@
-import { Command, Editor, EditorRange } from "obsidian";
-import { getLastElement, isNonEmptyArray } from "../utils/arrayUtils";
+import { Command, Editor, EditorPosition, EditorRange } from "obsidian";
+import { getLastElement, isNonEmptyArray, NonEmptyStringArray } from "../utils/arrayUtils";
 import {
   getCalloutIDAndEffectiveTitle,
   isCustomTitle,
@@ -9,8 +9,9 @@ import { makeCalloutSelectionCheckCallback } from "../utils/editorCheckCallbackU
 import {
   CursorPositions,
   getCursorPositions,
-  getNewAnchorAndHead,
+  getNewPositionWithinLine,
   getSelectedLinesRangeAndText,
+  setSelectionInCorrectDirection,
 } from "../utils/selectionUtils";
 import { getTextLines } from "../utils/stringUtils";
 
@@ -172,7 +173,7 @@ function adjustSelectionAfterReplacingCallout({
   oldFirstLine,
   editor,
 }: {
-  adjustedTextLines: [string, ...string[]];
+  adjustedTextLines: NonEmptyStringArray;
   originalCursorPositions: CursorPositions;
   oldLastLine: string;
   didRemoveHeader: boolean;
@@ -180,18 +181,42 @@ function adjustSelectionAfterReplacingCallout({
   editor: Editor;
 }): void {
   const { from: originalFrom, to: originalTo } = originalCursorPositions;
-  const newFirstLine = adjustedTextLines[0];
-  const newLastLine = getLastElement(adjustedTextLines);
-  const newToCh = Math.min(
-    originalTo.ch - (oldLastLine.length - newLastLine.length),
-    newLastLine.length
+  const newFrom = getNewFromPosition(
+    didRemoveHeader,
+    originalFrom,
+    oldFirstLine,
+    adjustedTextLines
   );
-  const newTo = { line: originalTo.line - (didRemoveHeader ? 1 : 0), ch: newToCh };
-  const newFromCh = didRemoveHeader
-    ? 0
-    : originalFrom.ch - (oldFirstLine.length - newFirstLine.length);
-  const newFrom = { line: originalFrom.line, ch: newFromCh };
+  const newTo = getNewToPosition(originalTo, oldLastLine, adjustedTextLines, didRemoveHeader);
   const newRange = { from: newFrom, to: newTo };
-  const { newAnchor, newHead } = getNewAnchorAndHead(originalCursorPositions, newRange);
-  editor.setSelection(newAnchor, newHead);
+  setSelectionInCorrectDirection(editor, originalCursorPositions, newRange);
+}
+
+function getNewFromPosition(
+  didRemoveHeader: boolean,
+  originalFrom: EditorPosition,
+  oldFirstLine: string,
+  adjustedTextLines: NonEmptyStringArray
+): EditorPosition {
+  const { line, ch: oldCh } = originalFrom;
+  if (didRemoveHeader) {
+    return { line, ch: 0 };
+  }
+  const lineDiff = { oldLine: oldFirstLine, newLine: adjustedTextLines[0] };
+  const newFromCh = getNewPositionWithinLine({ oldCh, lineDiff });
+  return { line, ch: newFromCh };
+}
+
+function getNewToPosition(
+  originalTo: EditorPosition,
+  oldLastLine: string,
+  adjustedTextLines: NonEmptyStringArray,
+  didRemoveHeader: boolean
+): EditorPosition {
+  const newToCh = getNewPositionWithinLine({
+    oldCh: originalTo.ch,
+    lineDiff: { oldLine: oldLastLine, newLine: getLastElement(adjustedTextLines) },
+  });
+  const newTo = { line: originalTo.line - (didRemoveHeader ? 1 : 0), ch: newToCh };
+  return newTo;
 }

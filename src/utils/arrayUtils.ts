@@ -1,11 +1,22 @@
 export type NonEmptyArray<T> = [T, ...T[]];
 export type NonEmptyStringArray = NonEmptyArray<string>;
 
-export function getLastElement<T>(arr: readonly [T, ...T[]]): T {
-  return arr[arr.length - 1]!; // eslint-disable-line @typescript-eslint/no-non-null-assertion
+type LastElement<A extends unknown[]> = A extends NonEmptyArray<infer T>
+  ? T
+  : A extends (infer T)[]
+  ? T | undefined
+  : never;
+
+/**
+ * Returns the last element of the array. Typed so that if we know we're passing a non-empty array,
+ * then we know the return value is not undefined.
+ */
+export function getLastElement<A extends unknown[]>(arr: A): LastElement<A> {
+  const lastElement = arr[arr.length - 1];
+  return lastElement as LastElement<A>;
 }
 
-export function isNonEmptyArray<T>(arr: readonly T[]): arr is [T, ...T[]] {
+export function isNonEmptyArray<T>(arr: readonly T[]): arr is NonEmptyArray<T> {
   return arr.length > 0;
 }
 

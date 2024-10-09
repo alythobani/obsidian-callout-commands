@@ -1,6 +1,6 @@
 import { Editor, EditorRange } from "obsidian";
 import { CalloutID } from "obsidian-callout-manager";
-import { NonEmptyStringArray } from "../../utils/arrayUtils";
+import { getLastElement, isNonEmptyArray, NonEmptyStringArray } from "../../utils/arrayUtils";
 import {
   getCustomHeadingTitleIfExists,
   getDefaultCalloutTitle,
@@ -9,7 +9,9 @@ import {
 import {
   CursorPositions,
   getCursorPositions,
+  getNewPositionWithinLine,
   getSelectedLinesRangeAndText,
+  LineDiff,
   setSelectionInCorrectDirection,
 } from "../../utils/selectionUtils";
 import { getTextLines } from "../../utils/stringUtils";
@@ -130,22 +132,56 @@ function getNewSelectionRangeAfterWrappingLinesInCallout({
 }): EditorRange {
   const { from: originalFrom, to: originalTo } = originalCursorPositions;
 
-  // Add 2 characters for the "> " prefix
-  const lastBodyLineLength = calloutBodyLines[calloutBodyLines.length - 1]?.length ?? 0;
-  const newToCh = Math.min(originalTo.ch + 2, lastBodyLineLength);
+  const lastLineDiff = getLastLineDiff(originalSelectedLines, calloutHeader, calloutBodyLines);
+  const newToCh = getNewPositionWithinLine({ oldCh: originalTo.ch, lineDiff: lastLineDiff });
 
+  // If all selected lines were used as the callout body, we added a new header line above them
   const didAddHeaderLine = originalSelectedLines.length === calloutBodyLines.length;
-  if (didAddHeaderLine) {
-    const newFrom = { line: originalFrom.line, ch: 0 };
-    const newTo = { line: originalTo.line + 1, ch: newToCh };
-    return { from: newFrom, to: newTo };
-  }
 
-  // We turned the existing first line from a heading into a callout header
-  const originalFirstLine = originalSelectedLines[0];
-  const rawNewFromCh = originalFrom.ch - (originalFirstLine.length - calloutHeader.length);
-  const newFromCh = Math.clamp(rawNewFromCh, 0, calloutHeader.length);
-  const newFrom = { line: originalFrom.line, ch: newFromCh };
-  const newTo = { line: originalTo.line, ch: newToCh };
+  const newToLine = originalTo.line + (didAddHeaderLine ? 1 : 0);
+  const newTo = { line: newToLine, ch: newToCh };
+
+  const newFrom = getNewFromPosition({
+    didAddHeaderLine,
+    originalFrom,
+    originalSelectedLines,
+    calloutHeader,
+  });
+
   return { from: newFrom, to: newTo };
+}
+
+function getLastLineDiff(
+  originalSelectedLines: NonEmptyStringArray,
+  calloutHeader: string,
+  calloutBodyLines: string[]
+): LineDiff {
+  const oldLine = getLastElement(originalSelectedLines);
+  const newLine = isNonEmptyArray(calloutBodyLines)
+    ? getLastElement(calloutBodyLines)
+    : // The header line is the only (and thus last) line in the callout
+      calloutHeader;
+  return { oldLine, newLine };
+}
+
+function getNewFromPosition({
+  didAddHeaderLine,
+  originalFrom,
+  originalSelectedLines,
+  calloutHeader,
+}: {
+  didAddHeaderLine: boolean;
+  originalFrom: { line: number; ch: number };
+  originalSelectedLines: NonEmptyStringArray;
+  calloutHeader: string;
+}): { line: number; ch: number } {
+  if (didAddHeaderLine) {
+    // Select from the start of the header line if we added a new header line
+    return { line: originalFrom.line, ch: 0 };
+  }
+  const newFromCh = getNewPositionWithinLine({
+    oldCh: originalFrom.ch,
+    lineDiff: { oldLine: originalSelectedLines[0], newLine: calloutHeader },
+  });
+  return { line: originalFrom.line, ch: newFromCh };
 }
