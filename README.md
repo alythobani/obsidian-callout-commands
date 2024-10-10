@@ -16,6 +16,7 @@ One `Wrap lines in [X] callout` command is provided for each callout type (bug, 
 ### Inserting a fresh callout block
 
 To insert a fresh callout block of your choice, simply run `Wrap lines in [X] callout` on a blank line:
+
 ![Inserting a fresh callout block](./readme_assets/0-insert-fresh.gif)
 
 ### Wrapping the current line
@@ -40,11 +41,9 @@ Note that the callout must begin on the first selected line of text for this com
 
 ### Retaining custom titles
 
-By default, callout blocks are given a title that matches the callout type (e.g. `> [!quote] Quote`).
+If a callout has a default title (e.g. `> [!quote] Quote`), the entire header line will be removed when calling `Remove callout from selected lines`. If a custom title is present (e.g. `> [!quote] Aristotle`), it will be retained as a Markdown heading, so that you don't lose your hard work in choosing that title.
 
-If the callout's title is the default or nonexistent, the entire header line will be removed when calling `Remove callout from selected lines`. However, if a custom title is present (e.g. `> [!quote] Aristotle`), it will be retained as a Markdown heading, so that you don't lose your hard work in titling the callout.
-
-This means that you can reuse the custom title as a title for a new callout block. If you call `Wrap lines in [X] callout` on a selection whose first line is a Markdown heading, the heading will be used as the title for the new callout block:
+If you call `Wrap lines in [X] callout` on a selection whose first line is a Markdown heading, the heading will be used as the custom title for the new callout block:
 
 ![Retaining custom titles](./readme_assets/4-custom-title.gif)
 
