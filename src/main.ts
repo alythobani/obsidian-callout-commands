@@ -1,15 +1,18 @@
 import { Plugin } from "obsidian";
 import { PluginCommandManager } from "./pluginCommandManager";
 import { PluginSettingsManager } from "./pluginSettingsManager";
-import { logInfo } from "./utils/logger";
 
 export default class CalloutToggleCommandsPlugin extends Plugin {
   public pluginSettingsManager = new PluginSettingsManager(this);
   private pluginCommandManager = new PluginCommandManager(this, this.pluginSettingsManager);
 
+  private logInfo(message: string): void {
+    console.log(`${this.manifest.name}: ${message}`);
+  }
+
   // eslint-disable-next-line @typescript-eslint/no-misused-promises
   async onload(): Promise<void> {
-    logInfo("Plugin loaded.");
+    // this.logInfo("Plugin loaded.");
 
     await this.pluginSettingsManager.setupSettingsTab();
 
@@ -26,6 +29,6 @@ export default class CalloutToggleCommandsPlugin extends Plugin {
   }
 
   onunload(): void {
-    logInfo("Plugin unloaded.");
+    // this.logInfo("Plugin unloaded.");
   }
 }
