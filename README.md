@@ -51,9 +51,13 @@ If you call `Wrap lines in [X] callout` on a selection whose first line is a Mar
 
 ### Select text after inserting callout (default: off)
 
-When enabled, callout text will be automatically selected after insertion, even if no text was initially selected. Enable this setting if you want to be able to immediately run `Remove callout from selected lines` on the callout block you just made. Keep this setting disabled if you'd prefer to be able to immediately start typing content after inserting a callout. Note that this setting only affects what happens when you run `Wrap lines in [X] callout` with no text selected (if text is selected, the selection will still be adjusted appropriately post-wrap).
+When enabled, callout text will be automatically selected after insertion, even if no text was initially selected. Enable this setting if you want to be able to immediately run `Remove callout from selected lines` after adding a callout. Keep this setting disabled if you'd prefer to be able to immediately start typing content after inserting a callout.
+
+With this enabled and hotkeys registered, it's super easy to switch between callout types:
 
 ![Select text after inserting callout](./readme_assets/5-setting-select-text-after-inserting-callout.gif)
+
+Note that this setting only affects what happens when you run `Wrap lines in [X] callout` with no text selected (if text is selected, the selection will still be adjusted appropriately post-wrap).
 
 ## Callout Manager integration (custom callouts)
 
