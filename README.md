@@ -4,6 +4,8 @@
 
 An [Obsidian](https://obsidian.md/) plugin for quickly adding and removing callout wrappers from selected lines of text.
 
+![Switching between callout types demonstration](./readme_assets/6-demo-switching.gif)
+
 ## Commands provided
 
 1. **Wrap lines in [X] callout**
