@@ -51,7 +51,7 @@ If you call `Wrap lines in [X] callout` on a selection whose first line is a Mar
 
 ### Select text after inserting callout (default: off)
 
-When enabled, callout text will be automatically selected after insertion, even if no text was initially selected. Enable this setting if you want to be able to immediately run `Remove callout from selected lines` after adding a callout. Keep this setting disabled if you'd prefer to be able to immediately start typing content after inserting a callout.
+When enabled, callout text will be automatically selected after insertion, even if no text was initially selected. Enable this setting if you want to be able to immediately run `Remove callout from selected lines` after adding a callout. Keep this setting disabled if you'd prefer to be able to immediately start typing content instead.
 
 With this enabled and hotkeys registered, it's super easy to switch between callout types:
 
