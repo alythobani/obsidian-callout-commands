@@ -73,4 +73,4 @@ If you'd like a single command that prompts you with a dropdown of callout types
 
 ## Appreciation
 
-Thanks to the creators of Obsidian—seriously an awesome note-taking app! Thanks also to [cwfryer](https://github.com/cwfryer) for creating a great open-source plugin ([Callout Suggestions](https://github.com/cwfryer/obsidian-callout-suggestions), mentioned above) that I could use as reference for developing this plugin. Finally, big thanks to [eth-p](https://github.com/eth-p/) for providing a Callout Manager API—quite a nice touch.
+Thanks to the creators of Obsidian—seriously an awesome note-taking app! Thanks also to [cwfryer](https://github.com/cwfryer) for creating a great open-source plugin ([Callout Suggestions](https://github.com/cwfryer/obsidian-callout-suggestions), mentioned above) that I could use as reference for developing this plugin. Finally, big thanks to [eth-p](https://github.com/eth-p/) for providing a [Callout Manager API](https://github.com/eth-p/obsidian-callout-manager/tree/master/api)—quite a nice touch.
