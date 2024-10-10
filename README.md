@@ -6,16 +6,16 @@ An [Obsidian](https://obsidian.md/) plugin for quickly adding and removing callo
 
 ## Commands provided
 
-1. **Wrap lines in [X] callout** (bug, info, warning, question, tip, quote, etc.)
+1. **Wrap lines in [X] callout**
 2. **Remove callout from selected lines**
 
-One `Wrap lines in [X] callout` command will be provided for each callout type, so that you can assign separate hotkeys for each of your favorite callouts.
+One `Wrap lines in [X] callout` command is provided for each callout type (bug, info, warning, question, tip, quote, etc.), so that you can assign separate hotkeys for each of your favorite callouts.
 
 ## Usage
 
-### Inserting a fresh callout block
+### Inserting a fresh callout block / wrapping the current line
 
-To insert a fresh callout block of your choice, simply run `Wrap lines in [X] callout` on a blank line.
+To insert a fresh callout block of your choice, simply run `Wrap lines in [X] callout` on a blank line. If the current line is not blank and nothing is selected, the current line will be included in the callout.
 
 ### Turning selected lines of text into a callout
 
@@ -35,7 +35,7 @@ This means that you can reuse the custom title as a title for a new callout bloc
 
 ## Available settings
 
-**Select text after inserting callout** (*default: off*): When enabled, callout text will be automatically selected after insertion, even if no text was initially selected. Enable this setting if you want to be able to immediately run `Remove callout from selected lines` on the callout block you just made. Keep this setting disabled if you'd prefer to be able to immediately start typing content after inserting a callout with nothing selected. Note that if you run a Wrap command on selected text, the editor's selection will still be adjusted appropriately, regardless of this setting.
+**Select text after inserting callout** (*default: off*): When enabled, callout text will be automatically selected after insertion, even if no text was initially selected. Enable this setting if you want to be able to immediately run `Remove callout from selected lines` on the callout block you just made. Keep this setting disabled if you'd prefer to be able to immediately start typing content after inserting a callout. Note that this setting only affects what happens when you run `Wrap lines in [X] callout` with no text selected (if text is selected, the selection will still be adjusted appropriately post-wrap).
 
 ## Callout Manager integration (custom callouts)
 
