@@ -2,7 +2,7 @@
 
 [!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/purple_img.png)](https://buymeacoffee.com/alythobani)
 
-An [Obsidian](https://obsidian.md/) plugin for quickly adding and removing callout wrappers from selected lines of text.
+An [Obsidian](https://obsidian.md/) plugin for quickly adding and removing callout wrappers to/from selected lines of text.
 
 ![Switching between callout types demonstration](./readme_assets/6-demo-switching.gif)
 
@@ -67,12 +67,12 @@ This plugin automatically integrates with the [Callout Manager](https://github.c
 
 If you don't have Callout Manager installed, [no worries](https://www.youtube.com/watch?v=4P-YBqVzJg0)—this plugin will still work as expected. A default set of callout types will be available for you to use.
 
-## Other related plugins
+## Related plugins
 
-You can use the [Callout Manager](https://github.com/eth-p/obsidian-callout-manager/) plugin to customize how Obsidian handles callouts (adjust callout colors/icons; add your own custom callouts; etc.).
+As mentioned above, you can use the [Callout Manager](https://github.com/eth-p/obsidian-callout-manager/) plugin to customize how Obsidian handles callouts (adjust callout colors/icons; add your own custom callouts; etc.).
 
-If you'd like a single command that prompts you with a dropdown of callout types, I'd recommend also installing the [Callout Suggestions](https://github.com/cwfryer/obsidian-callout-suggestions) plugin. However, do note that Callout Suggestions does depend on the Callout Manager plugin to work; but it does a great job at implementing the command.
+If you'd like a single command that prompts you with a dropdown of callout types, I'd recommend also installing the [Callout Suggestions](https://github.com/cwfryer/obsidian-callout-suggestions) plugin.
 
 ## Appreciation
 
-Thanks to the creators of Obsidian—seriously an awesome note-taking app! Thanks also to [cwfryer](https://github.com/cwfryer) for creating a great open-source plugin ([Callout Suggestions](https://github.com/cwfryer/obsidian-callout-suggestions), mentioned above) that I could use as reference for developing this plugin. Finally, big thanks to [eth-p](https://github.com/eth-p/) for providing a [Callout Manager API](https://github.com/eth-p/obsidian-callout-manager/tree/master/api)—quite a nice touch.
+Thanks to the creators of Obsidian, seriously an awesome note-taking app! And big thanks to [eth-p](https://github.com/eth-p/) for providing a [Callout Manager API](https://github.com/eth-p/obsidian-callout-manager/tree/master/api)—super cool.
