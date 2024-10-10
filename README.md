@@ -6,6 +6,23 @@ An [Obsidian](https://obsidian.md/) plugin for quickly adding and removing callo
 
 ![Switching between callout types demonstration](./readme_assets/6-demo-switching.gif)
 
+## Table of contents
+
+- [Callout Toggles](#callout-toggles)
+  - [Table of contents](#table-of-contents)
+  - [Commands provided](#commands-provided)
+  - [Usage](#usage)
+    - [Inserting a fresh callout block](#inserting-a-fresh-callout-block)
+    - [Wrapping the current line](#wrapping-the-current-line)
+    - [Turning multiple lines of text into a callout](#turning-multiple-lines-of-text-into-a-callout)
+    - [Unwrapping a callout block](#unwrapping-a-callout-block)
+    - [Retaining custom titles](#retaining-custom-titles)
+  - [Available settings](#available-settings)
+    - [Select text after inserting callout (default: off)](#select-text-after-inserting-callout-default-off)
+  - [Callout Manager integration (custom callouts)](#callout-manager-integration-custom-callouts)
+  - [Related plugins](#related-plugins)
+  - [Appreciation](#appreciation)
+
 ## Commands provided
 
 1. **Wrap lines in [X] callout**
@@ -53,13 +70,9 @@ If you call `Wrap lines in [X] callout` on a selection whose first line is a Mar
 
 ### Select text after inserting callout (default: off)
 
-When enabled, callout text will be automatically selected after insertion, even if no text was initially selected. Enable this setting if you want to be able to immediately run `Remove callout from selected lines` after adding a callout. Keep this setting disabled if you'd prefer to be able to immediately start typing content instead.
-
-With this enabled and hotkeys registered, it's super easy to switch between callout types:
+When enabled, callout text will be automatically selected after insertion, even if no text was initially selected. Keep this setting disabled if you'd prefer to be able to immediately start typing content after adding a fresh callout. Enable this setting if you'd prefer to be able to immediately run `Remove callout from selected lines` instead (useful for switching between callout types):
 
 ![Select text after inserting callout](./readme_assets/5-setting-select-text-after-inserting-callout.gif)
-
-Note that this setting only affects what happens when you run `Wrap lines in [X] callout` with no text selected (if text is selected, the selection will still be adjusted appropriately post-wrap).
 
 ## Callout Manager integration (custom callouts)
 
