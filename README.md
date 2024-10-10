@@ -17,17 +17,17 @@ One `Wrap lines in [X] callout` command is provided for each callout type (bug, 
 
 To insert a fresh callout block of your choice, simply run `Wrap lines in [X] callout` on a blank line. If the current line is not blank and nothing is selected, the current line will be included in the callout.
 
-### Turning selected lines of text into a callout
+### Turning multiple lines of text into a callout
 
-To turn text into a callout of your choice, run `Wrap lines in [X] callout` on the selected text. Note that the wrap command works on full lines; so as long as part of a line is selected, the entire line will be included in the callout.
+To turn multiple lines of text into a callout of your choice, first select the lines, and then  run `Wrap lines in [X] callout`. Note that the wrap command works on full lines; so as long as part of a line is selected, the entire line will be included in the callout.
 
 ### Unwrapping a callout block
 
 To turn a callout back into regular text, run the `Remove callout from selected lines` command with the given lines selected. The callout must begin on the first selected line of text for this command to be available.
 
-## Callout titles and Markdown headings
+### Retaining custom titles
 
-By default, callout blocks will be given a title that matches the callout type (e.g. `> [!quote] Quote`).
+By default, callout blocks are given a title that matches the callout type (e.g. `> [!quote] Quote`).
 
 If the callout's title is the default or nonexistent, the entire header line will be removed when calling `Remove callout from selected lines`. However, if a custom title is present (e.g. `> [!quote] Aristotle`), it will be retained as a Markdown heading, so that you don't lose your hard work in titling the callout.
 
