@@ -3,8 +3,9 @@
   "name": "Callout Toggles",
   "version": "1.0.0",
   "minAppVersion": "1.6.7",
-  "description": "Quickly add and remove callout wrappers to/from selected lines of text.",
+  "description": "Add and remove callout wrappers to/from selected lines of text.",
   "author": "Aly Thobani",
   "authorUrl": "https://github.com/alythobani/",
+  "fundingUrl": "https://buymeacoffee.com/alythobani",
   "isDesktopOnly": false
 }
