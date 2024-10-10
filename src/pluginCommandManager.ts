@@ -15,8 +15,16 @@ import { filterOutElements } from "./utils/arrayUtils";
 export class PluginCommandManager {
   calloutManager?: CalloutManagerOwnedHandle;
   addedCommandCalloutIDsSet = new Set<CalloutID>();
+  onCalloutManagerChange = this.resyncCalloutCommands.bind(this);
 
   constructor(private plugin: Plugin, private pluginSettingsManager: PluginSettingsManager) {}
+
+  public onPluginUnload(): void {
+    if (this.calloutManager === undefined) {
+      return;
+    }
+    this.calloutManager.off("change", this.onCalloutManagerChange);
+  }
 
   public async setupCommands(): Promise<void> {
     await this.setupCalloutManagerIfInstalled();
@@ -29,7 +37,7 @@ export class PluginCommandManager {
       return;
     }
     this.calloutManager = maybeAPIHandle;
-    this.calloutManager.on("change", () => this.resyncCalloutCommands());
+    this.calloutManager.on("change", this.onCalloutManagerChange);
   }
 
   private resyncCalloutCommands(): void {

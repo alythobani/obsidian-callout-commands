@@ -30,5 +30,6 @@ export default class CalloutToggleCommandsPlugin extends Plugin {
 
   onunload(): void {
     // this.logInfo("Plugin unloaded.");
+    this.pluginCommandManager.onPluginUnload();
   }
 }
