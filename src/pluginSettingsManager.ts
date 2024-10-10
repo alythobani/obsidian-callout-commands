@@ -5,6 +5,8 @@ export interface PluginSettings {
   shouldSetSelectionAfterCurrentLineWrap: boolean;
 }
 
+type SettingKey = keyof PluginSettings;
+
 const DEFAULT_SETTINGS: PluginSettings = {
   shouldSetSelectionAfterCurrentLineWrap: false,
 };
@@ -31,8 +33,16 @@ export class PluginSettingsManager extends PluginSettingTab {
     this.plugin.addSettingTab(this);
   }
 
-  public getSetting(settingKey: keyof PluginSettings): PluginSettings[keyof PluginSettings] {
+  public getSetting(settingKey: SettingKey): PluginSettings[SettingKey] {
     return this.settings[settingKey];
+  }
+
+  private async setSetting<K extends SettingKey>(
+    settingKey: K,
+    value: PluginSettings[K]
+  ): Promise<void> {
+    this.settings[settingKey] = value;
+    await this.saveSettings();
   }
 
   display(): void {
@@ -52,10 +62,7 @@ export class PluginSettingsManager extends PluginSettingTab {
 
   private setupSetSelectionToggle(toggle: ToggleComponent): ToggleComponent {
     toggle = toggle.setValue(this.settings.shouldSetSelectionAfterCurrentLineWrap);
-    toggle = toggle.onChange(async (value) => {
-      this.settings.shouldSetSelectionAfterCurrentLineWrap = value;
-      await this.saveSettings();
-    });
+    toggle = toggle.onChange(this.setSetting.bind(this, "shouldSetSelectionAfterCurrentLineWrap"));
     return toggle;
   }
 
