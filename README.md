@@ -17,6 +17,10 @@ One `Wrap lines in [X] callout` command is provided for each callout type (bug, 
 
 To insert a fresh callout block of your choice, simply run `Wrap lines in [X] callout` on a blank line. If the current line is not blank and nothing is selected, the current line will be included in the callout.
 
+<video src="./readme_assets/0-insert-fresh.mov"></video>
+
+![Inserting a fresh callout block](./readme_assets/0-insert-fresh.mov)
+
 ### Turning multiple lines of text into a callout
 
 To turn multiple lines of text into a callout of your choice, first select the lines, and then  run `Wrap lines in [X] callout`. Note that the wrap command works on full lines; so as long as part of a line is selected, the entire line will be included in the callout.
