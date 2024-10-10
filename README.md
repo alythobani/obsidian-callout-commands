@@ -13,25 +13,30 @@ One `Wrap lines in [X] callout` command is provided for each callout type (bug, 
 
 ## Usage
 
-### Inserting a fresh callout block / wrapping the current line
+### Inserting a fresh callout block
 
-To insert a fresh callout block of your choice, simply run `Wrap lines in [X] callout` on a blank line. If the current line is not blank and nothing is selected, the current line will be included in the callout.
-
+To insert a fresh callout block of your choice, simply run `Wrap lines in [X] callout` on a blank line:
 ![Inserting a fresh callout block](./readme_assets/0-insert-fresh.gif)
+
+### Wrapping the current line
+
+If the current line is not blank and nothing is selected, the current line will be included in the callout:
 
 ![Wrapping the current line in a callout](./readme_assets/1-current-line.gif)
 
 ### Turning multiple lines of text into a callout
 
-To turn multiple lines of text into a callout of your choice, first select the lines, and then  run `Wrap lines in [X] callout`. Note that the wrap command works on full lines; so as long as part of a line is selected, the entire line will be included in the callout.
+To turn multiple lines of text into a callout of your choice, first select the lines, and then  run `Wrap lines in [X] callout`. Note that the wrap command works on full lines; so as long as part of a line is selected, the entire line will be included in the callout:
 
 ![Wrapping multiple lines in a callout](./readme_assets/2-multi-line.gif)
 
 ### Unwrapping a callout block
 
-To turn a callout back into regular text, run the `Remove callout from selected lines` command with the given lines selected. The callout must begin on the first selected line of text for this command to be available.
+To turn a callout back into regular text, run the `Remove callout from selected lines` command with the given lines selected:
 
 ![Unwrapping a callout block](./readme_assets/3-remove-callout.gif)
+
+Note that the callout must begin on the first selected line of text for this command to be available.
 
 ### Retaining custom titles
 
@@ -39,13 +44,15 @@ By default, callout blocks are given a title that matches the callout type (e.g.
 
 If the callout's title is the default or nonexistent, the entire header line will be removed when calling `Remove callout from selected lines`. However, if a custom title is present (e.g. `> [!quote] Aristotle`), it will be retained as a Markdown heading, so that you don't lose your hard work in titling the callout.
 
-This means that you can reuse the custom title as a title for a new callout block. If you call `Wrap lines in [X] callout` on a selection whose first line is a Markdown heading, the heading will be used as the title for the new callout block.
+This means that you can reuse the custom title as a title for a new callout block. If you call `Wrap lines in [X] callout` on a selection whose first line is a Markdown heading, the heading will be used as the title for the new callout block:
 
 ![Retaining custom titles](./readme_assets/4-custom-title.gif)
 
 ## Available settings
 
-**Select text after inserting callout** (*default: off*): When enabled, callout text will be automatically selected after insertion, even if no text was initially selected. Enable this setting if you want to be able to immediately run `Remove callout from selected lines` on the callout block you just made. Keep this setting disabled if you'd prefer to be able to immediately start typing content after inserting a callout. Note that this setting only affects what happens when you run `Wrap lines in [X] callout` with no text selected (if text is selected, the selection will still be adjusted appropriately post-wrap).
+### Select text after inserting callout (default: off)
+
+When enabled, callout text will be automatically selected after insertion, even if no text was initially selected. Enable this setting if you want to be able to immediately run `Remove callout from selected lines` on the callout block you just made. Keep this setting disabled if you'd prefer to be able to immediately start typing content after inserting a callout. Note that this setting only affects what happens when you run `Wrap lines in [X] callout` with no text selected (if text is selected, the selection will still be adjusted appropriately post-wrap).
 
 ![Select text after inserting callout](./readme_assets/5-setting-select-text-after-inserting-callout.gif)
 
