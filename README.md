@@ -66,6 +66,10 @@ If you call `Wrap lines in [X] callout` on a selection whose first line is a Mar
 
 ![Retaining custom titles](./readme_assets/4-custom-title.gif)
 
+This makes it easy to switch between callout types while retaining your custom titles:
+
+![Retaining custom titles while switching between callout types](./readme_assets/6-demo-switching-aristotle.gif)
+
 ## Available settings
 
 ### Select text after inserting callout (default: off)
