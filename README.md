@@ -2,7 +2,7 @@
 
 [!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/purple_img.png)](https://buymeacoffee.com/alythobani)
 
-An [Obsidian](https://obsidian.md/) plugin for quickly adding and removing callout wrappers to/from selected lines of text.
+An [Obsidian](https://obsidian.md/) plugin to quickly add, change, or remove callout wrappers in your notes.
 
 ![Switching between callout types demonstration](./readme_assets/6-demo-switching.gif)
 
