@@ -8,20 +8,19 @@ An [Obsidian](https://obsidian.md/) plugin to quickly add, change, or remove cal
 
 ## Table of contents
 
-- [Callout Toggles](#callout-toggles)
-  - [Table of contents](#table-of-contents)
-  - [Commands provided](#commands-provided)
-  - [Usage](#usage)
-    - [Inserting a fresh callout block](#inserting-a-fresh-callout-block)
-    - [Wrapping the current line](#wrapping-the-current-line)
-    - [Turning multiple lines of text into a callout](#turning-multiple-lines-of-text-into-a-callout)
-    - [Unwrapping a callout block](#unwrapping-a-callout-block)
-    - [Retaining custom titles](#retaining-custom-titles)
-  - [Available settings](#available-settings)
-    - [Select text after inserting callout (default: off)](#select-text-after-inserting-callout-default-off)
-  - [Callout Manager integration (custom callouts)](#callout-manager-integration-custom-callouts)
-  - [Related plugins](#related-plugins)
-  - [Appreciation](#appreciation)
+1. [Table of contents](#table-of-contents)
+2. [Commands provided](#commands-provided)
+3. [Usage](#usage)
+   1. [Inserting a fresh callout block](#inserting-a-fresh-callout-block)
+   2. [Wrapping the current line](#wrapping-the-current-line)
+   3. [Turning multiple lines of text into a callout](#turning-multiple-lines-of-text-into-a-callout)
+   4. [Unwrapping a callout block](#unwrapping-a-callout-block)
+   5. [Retaining custom titles](#retaining-custom-titles)
+4. [Available settings](#available-settings)
+   1. [Select text after inserting callout (default: off)](#select-text-after-inserting-callout-default-off)
+5. [Callout Manager integration (custom callouts)](#callout-manager-integration-custom-callouts)
+6. [Related plugins](#related-plugins)
+7. [Appreciation](#appreciation)
 
 ## Commands provided
 
