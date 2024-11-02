@@ -2,7 +2,7 @@
 
 [!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/purple_img.png)](https://buymeacoffee.com/alythobani)
 
-An [Obsidian](https://obsidian.md/) plugin to quickly add, change, or remove callout wrappers in your notes.
+An [Obsidian](https://obsidian.md/) plugin to quickly add, change, or remove callouts in your notes.
 
 ![Switching between callout types demonstration](./readme_assets/6-demo-switching.gif)
 
@@ -10,11 +10,13 @@ An [Obsidian](https://obsidian.md/) plugin to quickly add, change, or remove cal
 
 1. [Table of contents](#table-of-contents)
 2. [Commands provided](#commands-provided)
-3. [Usage](#usage)
-   1. [Inserting a fresh callout block](#inserting-a-fresh-callout-block)
+   1. [Wrap lines in X callout](#wrap-lines-in-x-callout)
+   2. [Remove callout from selected lines](#remove-callout-from-selected-lines)
+3. [Usage examples](#usage-examples)
+   1. [Inserting a fresh callout](#inserting-a-fresh-callout)
    2. [Wrapping the current line](#wrapping-the-current-line)
-   3. [Turning multiple lines of text into a callout](#turning-multiple-lines-of-text-into-a-callout)
-   4. [Unwrapping a callout block](#unwrapping-a-callout-block)
+   3. [Wrapping multiple lines](#wrapping-multiple-lines)
+   4. [Removing a callout](#removing-a-callout)
    5. [Retaining custom titles](#retaining-custom-titles)
 4. [Available settings](#available-settings)
    1. [Select text after inserting callout (default: off)](#select-text-after-inserting-callout-default-off)
@@ -24,44 +26,51 @@ An [Obsidian](https://obsidian.md/) plugin to quickly add, change, or remove cal
 
 ## Commands provided
 
-1. **Wrap lines in [X] callout**
-2. **Remove callout from selected lines**
+> [!TIP]
+> Both commands work on full lines of text, so your cursor position within a given line doesn't matter. As long as part of a line is selected, the entire line will be included.
 
-One `Wrap lines in [X] callout` command is provided for each callout type (bug, info, warning, question, tip, quote, etc.), so that you can assign separate hotkeys for each of your favorite callouts.
+### Wrap lines in X callout
 
-## Usage
+One `Wrap lines in X callout` command is provided for every possible callout type `X` (❞ Quote, ⚠ Warning, 🔥 Tip, 🐞 Bug, 📝 Note, etc.), so that you can assign separate hotkeys for each of your favorite callouts.
 
-### Inserting a fresh callout block
+### Remove callout from selected lines
 
-To insert a fresh callout block of your choice, simply run `Wrap lines in [X] callout` on a blank line:
+> [!IMPORTANT]
+> Note that a callout must begin on the first selected line of text for this command to be available.
 
-![Inserting a fresh callout block](./readme_assets/0-insert-fresh.gif)
+This command will remove the callout syntax from the selected lines, turning the callout back into regular text. If a custom title is present, it will be retained as a Markdown heading.
+
+## Usage examples
+
+### Inserting a fresh callout
+
+To insert a fresh callout of your choice, simply run `Wrap lines in X callout` on a blank line:
+
+![Inserting a fresh callout](./readme_assets/0-insert-fresh.gif)
 
 ### Wrapping the current line
 
-If the current line is not blank and nothing is selected, the current line will be included in the callout:
+If the current line is not blank and nothing is selected, the current line will be turned into a callout:
 
 ![Wrapping the current line in a callout](./readme_assets/1-current-line.gif)
 
-### Turning multiple lines of text into a callout
+### Wrapping multiple lines
 
-To turn multiple lines of text into a callout of your choice, first select the lines, and then  run `Wrap lines in [X] callout`. Note that the wrap command works on full lines; so as long as part of a line is selected, the entire line will be included in the callout:
+To turn multiple lines of text into a callout, first select the lines, and then  run `Wrap lines in X callout`:
 
 ![Wrapping multiple lines in a callout](./readme_assets/2-multi-line.gif)
 
-### Unwrapping a callout block
+### Removing a callout
 
 To turn a callout back into regular text, run the `Remove callout from selected lines` command with the given lines selected:
 
 ![Unwrapping a callout block](./readme_assets/3-remove-callout.gif)
 
-Note that the callout must begin on the first selected line of text for this command to be available.
-
 ### Retaining custom titles
 
 If a callout has a default title (e.g. `> [!quote] Quote`), the entire header line will be removed when calling `Remove callout from selected lines`. If a custom title is present (e.g. `> [!quote] Aristotle`), it will be retained as a Markdown heading, so that you don't lose your hard work in choosing that title.
 
-If you call `Wrap lines in [X] callout` on a selection whose first line is a Markdown heading, the heading will be used as the custom title for the new callout block:
+If you call `Wrap lines in X callout` on a selection whose first line is a Markdown heading, the heading will be used as the custom title for the new callout block:
 
 ![Retaining custom titles](./readme_assets/4-custom-title.gif)
 
@@ -73,7 +82,10 @@ This makes it easy to switch between callout types while retaining your custom t
 
 ### Select text after inserting callout (default: off)
 
-When enabled, callout text will be automatically selected after insertion, even if no text was initially selected. Keep this setting disabled if you'd prefer to be able to immediately start typing content after adding a fresh callout. Enable this setting if you'd prefer to be able to immediately run `Remove callout from selected lines` instead (useful for switching between callout types):
+> [!NOTE]
+> This setting only affects the behavior of the `Wrap lines in X callout` command when no text is initially selected.
+
+When enabled, callout text will be automatically selected after insertion, even if no text was initially selected (i.e. when inserting a fresh callout or wrapping the current line). Keep this setting disabled if you'd prefer to be able to immediately start typing content after inserting/wrapping. Enable this setting if you'd prefer to be able to immediately run `Remove callout from selected lines` instead (useful for switching between callout types):
 
 ![Select text after inserting callout](./readme_assets/5-setting-select-text-after-inserting-callout.gif)
 
