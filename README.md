@@ -22,7 +22,8 @@ An [Obsidian](https://obsidian.md/) plugin to quickly add, change, or remove cal
    1. [Select text after inserting callout (default: off)](#select-text-after-inserting-callout-default-off)
 5. [Callout Manager integration (custom callouts)](#callout-manager-integration-custom-callouts)
 6. [Related plugins](#related-plugins)
-7. [Appreciation](#appreciation)
+7. [Feedback](#feedback)
+8. [Appreciation](#appreciation)
 
 ## Commands provided
 
@@ -105,6 +106,10 @@ If you'd like to be able to insert a fresh callout by choosing from a styled (wi
 
 1. [Personal Assistant](https://github.com/edonyzpc/personal-assistant): Shows dropdown when running command "List callout for quickly insert"
 2. [Callout Suggestions](https://github.com/cwfryer/obsidian-callout-suggestions): Shows inline dropdown when typing `>!`
+
+## Feedback
+
+If you have any feedback or suggestions, feel free to [open an issue](https://github.com/alythobani/obsidian-callout-toggles/issues) and I'd be happy to take a look!
 
 ## Appreciation
 
