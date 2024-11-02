@@ -26,6 +26,8 @@ An [Obsidian](https://obsidian.md/) plugin to quickly add, change, or remove cal
 
 ## Commands provided
 
+Two types of commands are provided: `Wrap lines in X callout` and `Remove callout from selected lines`. Using them together, you can easily change the type of an existing callout.
+
 > [!TIP]
 > Both commands work on full lines of text, so your cursor position within a given line doesn't matter. As long as part of a line is selected, the entire line will be included.
 
@@ -83,7 +85,7 @@ This makes it easy to switch between callout types while retaining your custom t
 ### Select text after inserting callout (default: off)
 
 > [!NOTE]
-> This setting only affects the behavior of the `Wrap lines in X callout` command when no text is initially selected.
+> This setting only affects the behavior of the `Wrap lines in X callout` command *when no text is initially selected*.
 
 When enabled, callout text will be automatically selected after insertion, even if no text was initially selected (i.e. when inserting a fresh callout or wrapping the current line). Keep this setting disabled if you'd prefer to be able to immediately start typing content after inserting/wrapping. Enable this setting if you'd prefer to be able to immediately run `Remove callout from selected lines` instead (useful for switching between callout types):
 
