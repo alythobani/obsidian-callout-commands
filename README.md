@@ -34,14 +34,14 @@ Two types of commands are provided: `Wrap lines in X callout` and `Remove callou
 
 ### Wrap lines in X callout
 
-One `Wrap lines in X callout` command is provided for every possible callout type `X` (❞ Quote, ⚠ Warning, 🔥 Tip, 🐞 Bug, 📝 Note, etc.), so that you can assign separate hotkeys for each of your favorite callouts.
+One `Wrap lines in X callout` command is provided for every possible callout type `X` (❞ Quote, ⚠ Warning, 🔥 Tip, 🐞 Bug, 📝 Note, etc.), so that you can assign separate hotkeys for each of your favorite callouts. This can be used both for inserting fresh callouts, and for turning existing text into callouts.
 
 ### Remove callout from selected lines
 
 > [!IMPORTANT]
 > Note that a callout must begin on the first selected line of text for this command to be available.
 
-This command will remove the callout syntax from the selected lines, turning the callout back into regular text. If a custom title is present, it will be retained as a Markdown heading.
+This will remove the callout syntax from the selected lines, turning the callout back into regular text. If a custom title is present, it will be retained as a Markdown heading.
 
 ## Usage examples
 
@@ -65,7 +65,7 @@ To turn multiple lines of text into a callout, first select the lines, and then 
 
 ### Removing a callout
 
-To turn a callout back into regular text, run the `Remove callout from selected lines` command with the given lines selected:
+To turn a callout back into regular text, run `Remove callout from selected lines` with the given lines selected (make sure the callout header is on the first selected line):
 
 ![Unwrapping a callout block](./readme_assets/3-remove-callout.gif)
 
@@ -86,7 +86,7 @@ This makes it easy to switch between callout types while retaining your custom t
 ### Select text after inserting callout (default: off)
 
 > [!NOTE]
-> This setting only affects the behavior of the `Wrap lines in X callout` command *when no text is initially selected*.
+> This setting only affects what `Wrap lines in X callout` does *when no text is initially selected*.
 
 When enabled, callout text will be automatically selected after insertion, even if no text was initially selected (i.e. when inserting a fresh callout or wrapping the current line). Keep this setting disabled if you'd prefer to be able to immediately start typing content after inserting/wrapping. Enable this setting if you'd prefer to be able to immediately run `Remove callout from selected lines` instead (useful for switching between callout types):
 
