@@ -1,7 +1,6 @@
 import { Command, Editor } from "obsidian";
+import { CALLOUT_HEADER_WITH_ID_CAPTURE_REGEX } from "./calloutTitleUtils";
 import { getSelectedLinesRangeAndText } from "./selectionUtils";
-
-const CALLOUT_HEADER_REGEX = /^> \[!\w+\]/;
 
 /**
  * See Obsidian docs for `editorCheckCallback` for more information:
@@ -31,10 +30,14 @@ export function makeCalloutSelectionCheckCallback(
 ): EditorCheckCallback {
   return (checking, editor, _ctx) => {
     if (!editor.somethingSelected()) return false; // Only show the command if text is selected
-    const { selectedLinesText } = getSelectedLinesRangeAndText(editor);
-    if (!CALLOUT_HEADER_REGEX.test(selectedLinesText)) return false; // Only show the command if the selected text is a callout
+    if (!isFirstSelectedLineCalloutHeader(editor)) return false; // Only show the command if the selected lines begin with a callout
     return showOrRunCommand(editorAction, editor, checking);
   };
+}
+
+function isFirstSelectedLineCalloutHeader(editor: Editor): boolean {
+  const { selectedLinesText } = getSelectedLinesRangeAndText(editor);
+  return CALLOUT_HEADER_WITH_ID_CAPTURE_REGEX.test(selectedLinesText);
 }
 
 /**
@@ -50,6 +53,10 @@ export function makeCurrentLineCheckCallback(
   };
 }
 
+/**
+ * Shows or runs the given editor action depending on whether `checking` is true. Helper function
+ * for creating editor check callbacks.
+ */
 function showOrRunCommand(
   editorAction: (editor: Editor) => void,
   editor: Editor,

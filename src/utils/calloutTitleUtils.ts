@@ -1,8 +1,8 @@
 import { getTrimmedFirstCapturingGroupIfExists } from "./regexUtils";
 import { toTitleCaseWord } from "./stringUtils";
 
-const CALLOUT_ID_REGEX = /^> \[!(\w+)\]/;
-const CALLOUT_TITLE_REGEX = /^> \[!\w+\] (.+)/;
+export const CALLOUT_HEADER_WITH_ID_CAPTURE_REGEX = /^> \[!(.+)\]/;
+const CALLOUT_TITLE_REGEX = /^> \[!.+\] (.+)/;
 const HEADING_TITLE_REGEX = /^#+ (.+)/;
 
 export function makeCalloutHeader({
@@ -21,7 +21,7 @@ function makeBaseCalloutHeader(calloutID: string): string {
 }
 
 export function getDefaultCalloutTitle(calloutID: string): string {
-  return toTitleCaseWord(calloutID);
+  return toTitleCaseWord(calloutID).replace(/-/g, " ");
 }
 
 export function makeDefaultCalloutHeader(calloutID: string): string {
@@ -56,7 +56,10 @@ function getCalloutID(fullCalloutText: string): string {
 }
 
 function getTrimmedCalloutIDIfExists(fullCalloutText: string): string | undefined {
-  return getTrimmedFirstCapturingGroupIfExists(CALLOUT_ID_REGEX, fullCalloutText);
+  return getTrimmedFirstCapturingGroupIfExists(
+    CALLOUT_HEADER_WITH_ID_CAPTURE_REGEX,
+    fullCalloutText
+  );
 }
 
 /**
