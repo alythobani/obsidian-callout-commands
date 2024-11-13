@@ -1,7 +1,5 @@
 # Callout Toggles
 
-[!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/purple_img.png)](https://buymeacoffee.com/alythobani)
-
 An [Obsidian plugin](https://obsidian.md/plugins?id=callout-toggles) to quickly add, change, or remove callouts in your notes.
 
 ![Switching between callout types demonstration](./readme_assets/6-demo-switching.gif)
