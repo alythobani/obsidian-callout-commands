@@ -92,18 +92,18 @@ When enabled, callout text will be automatically selected after insertion, even 
 
 ## Callout Manager integration (custom callouts)
 
-This plugin automatically integrates with the [Callout Manager](https://github.com/eth-p/obsidian-callout-manager/) plugin, if you have it installed. This means that the callout types available in this plugin will be automatically synced with your custom callout types in Callout Manager.
+This plugin automatically integrates with the [Callout Manager] plugin, if you have it installed. This means that the callout types available in this plugin will be automatically synced with your custom callout types in Callout Manager.
 
 If you don't have Callout Manager installed, [no worries](https://www.youtube.com/watch?v=4P-YBqVzJg0)—this plugin will still work as expected. A default set of callout types will be available for you to use.
 
 ## Related plugins
 
-As mentioned above, you can use [Callout Manager](https://github.com/eth-p/obsidian-callout-manager/) to customize how Obsidian handles callouts (adjust callout colors/icons; add your own custom callouts; etc.).
+As mentioned above, you can use [Callout Manager] (by [eth-p]) to customize how Obsidian handles callouts—e.g. adjust callout colors/icons, add your own custom callouts, etc.
 
 If you'd like to be able to insert a fresh callout by choosing from a styled (with icons!) dropdown of callout types, you can also consider installing either/both:
 
-1. [Personal Assistant](https://github.com/edonyzpc/personal-assistant): Shows dropdown when running command "List callout for quickly insert"
-2. [Callout Suggestions](https://github.com/cwfryer/obsidian-callout-suggestions): Shows inline dropdown when typing `>!`
+1. [Personal Assistant](https://github.com/edonyzpc/personal-assistant) (by [edonyzpc](https://github.com/edonyzpc/)): Shows dropdown when running command "List callout for quickly insert"
+2. [Callout Suggestions](https://github.com/cwfryer/obsidian-callout-suggestions) (by [cwfryer](https://github.com/cwfryer/)): Shows inline dropdown when typing `>!`
 
 ## Feedback
 
@@ -111,4 +111,7 @@ If you have any feedback or suggestions, feel free to [open an issue](https://gi
 
 ## Appreciation
 
-Thanks to the creators of Obsidian, seriously an awesome note-taking app! And big thanks to [eth-p](https://github.com/eth-p/) for providing a [Callout Manager API](https://github.com/eth-p/obsidian-callout-manager/tree/master/api)—super cool.
+Thanks to the creators of Obsidian, seriously an awesome note-taking app! And big thanks to [eth-p] for providing a [Callout Manager API](https://github.com/eth-p/obsidian-callout-manager/tree/master/api)—super cool.
+
+[Callout Manager]: https://github.com/eth-p/obsidian-callout-manager/
+[eth-p]: https://github.com/eth-p/
