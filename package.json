@@ -2,7 +2,7 @@
   "private": true,
   "type": "module",
   "name": "obsidian-callout-toggles",
-  "description": "An Obsidian plugin providing individual commands for adding and removing callout wrappers to/from selected lines of text.",
+  "description": "An Obsidian plugin to quickly add, change, or remove callouts in your notes.",
   "main": "./main.js",
   "author": "Aly Thobani",
   "license": "GPL-3.0-only",
