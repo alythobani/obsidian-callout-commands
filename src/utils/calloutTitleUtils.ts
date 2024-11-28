@@ -1,32 +1,54 @@
+import { PluginSettingsManager } from "../pluginSettingsManager";
+import { throwNever } from "./errorUtils";
 import { getTrimmedFirstCapturingGroupIfExists } from "./regexUtils";
 import { toTitleCaseWord } from "./stringUtils";
 
 export const CALLOUT_HEADER_WITH_ID_CAPTURE_REGEX = /^> \[!(.+)\]/;
-const CALLOUT_TITLE_REGEX = /^> \[!.+\] (.+)/;
+const CALLOUT_TITLE_REGEX = /^> \[!.+\][+-]? (.+)/;
 const HEADING_TITLE_REGEX = /^#+ (.+)/;
 
 export function makeCalloutHeader({
   calloutID,
   title,
+  pluginSettingsManager,
 }: {
   calloutID: string;
   title: string;
+  pluginSettingsManager: PluginSettingsManager;
 }): string {
   const baseCalloutHeader = makeBaseCalloutHeader(calloutID);
-  return `${baseCalloutHeader} ${title}`;
+  const foldableSuffix = makeFoldableSuffix(pluginSettingsManager);
+  return `${baseCalloutHeader}${foldableSuffix} ${title}`;
 }
 
 function makeBaseCalloutHeader(calloutID: string): string {
   return `> [!${calloutID}]`;
 }
 
+function makeFoldableSuffix(pluginSettingsManager: PluginSettingsManager): string {
+  const defaultFoldableState = pluginSettingsManager.getSetting("defaultFoldableState");
+  switch (defaultFoldableState) {
+    case "unfoldable":
+      return "";
+    case "foldable-expanded":
+      return "+";
+    case "foldable-collapsed":
+      return "-";
+    default:
+      throwNever(defaultFoldableState);
+  }
+}
+
 export function getDefaultCalloutTitle(calloutID: string): string {
   return toTitleCaseWord(calloutID).replace(/-/g, " ");
 }
 
-export function makeDefaultCalloutHeader(calloutID: string): string {
+export function makeDefaultCalloutHeader(
+  calloutID: string,
+  pluginSettingsManager: PluginSettingsManager
+): string {
   const defaultTitle = getDefaultCalloutTitle(calloutID);
-  return makeCalloutHeader({ calloutID, title: defaultTitle });
+  return makeCalloutHeader({ calloutID, title: defaultTitle, pluginSettingsManager });
 }
 
 export function makeH6Line(title: string): string {
