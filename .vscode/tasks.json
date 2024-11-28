@@ -8,6 +8,17 @@
       "problemMatcher": [],
       "label": "npm: build",
       "detail": "npx webpack"
+    },
+    {
+      "type": "npm",
+      "script": "watch",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": [],
+      "label": "npm: watch",
+      "detail": "npx webpack --watch"
     }
   ]
 }
