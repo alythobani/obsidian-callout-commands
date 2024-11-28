@@ -2,7 +2,7 @@
 
 An [Obsidian plugin](https://obsidian.md/plugins?id=callout-toggles) to quickly add, change, or remove callouts in your notes.
 
-![Switching between callout types demonstration](./readme_assets/6-demo-switching.gif)
+![Switching between callout types demonstration](./readme_gifs/main-demo-switching.gif)
 
 ## Table of contents
 
@@ -48,25 +48,25 @@ This will remove the callout syntax from the selected lines, turning the callout
 
 To insert a fresh callout of your choice, simply run `Wrap lines in X callout` on a blank line:
 
-![Inserting a fresh callout](./readme_assets/0-insert-fresh.gif)
+![Inserting a fresh callout](./readme_gifs/usage_examples/0-insert-fresh.gif)
 
 ### Wrapping the current line
 
 If the current line is not blank and nothing is selected, the current line will be turned into a callout:
 
-![Wrapping the current line in a callout](./readme_assets/1-current-line.gif)
+![Wrapping the current line in a callout](./readme_gifs/usage_examples/1-current-line.gif)
 
 ### Wrapping multiple lines
 
 To turn multiple lines of text into a callout, first select the lines, and then  run `Wrap lines in X callout`:
 
-![Wrapping multiple lines in a callout](./readme_assets/2-multi-line.gif)
+![Wrapping multiple lines in a callout](./readme_gifs/usage_examples/2-multi-line.gif)
 
 ### Removing a callout
 
 To turn a callout back into regular text, run `Remove callout from selected lines` with the given lines selected (make sure the callout header is on the first selected line):
 
-![Unwrapping a callout block](./readme_assets/3-remove-callout.gif)
+![Unwrapping a callout block](./readme_gifs/usage_examples/3-remove-callout.gif)
 
 ### Retaining custom titles
 
@@ -74,11 +74,11 @@ If a callout has a default title (e.g. `> [!quote] Quote`), the entire header li
 
 If you call `Wrap lines in X callout` on a selection whose first line is a Markdown heading, the heading will be used as the custom title for the new callout block:
 
-![Retaining custom titles](./readme_assets/4-custom-title.gif)
+![Retaining custom titles](./readme_gifs/usage_examples/4a-custom-title.gif)
 
 This makes it easy to switch between callout types while retaining your custom titles:
 
-![Retaining custom titles while switching between callout types](./readme_assets/6-demo-switching-aristotle.gif)
+![Retaining custom titles while switching between callout types](./readme_gifs/usage_examples/4b-custom-title-fast.gif)
 
 ## Available settings
 
@@ -87,13 +87,15 @@ This makes it easy to switch between callout types while retaining your custom t
 > [!NOTE]
 > This setting only affects what `Wrap lines in X callout` does *when no text is initially selected*.
 
-When enabled, callout text will be automatically selected after insertion, even if no text was initially selected (i.e. when inserting a fresh callout or wrapping the current line). Keep this setting disabled if you'd prefer to be able to immediately start typing content after inserting/wrapping. Enable this setting if you'd prefer to be able to immediately run `Remove callout from selected lines` instead (useful for switching between callout types):
+When enabled, callout text will be automatically selected after insertion, even if no text was initially selected (e.g. when inserting a fresh callout or wrapping the current line). Keep this setting disabled if you'd prefer to be able to immediately start typing content after inserting/wrapping. Enable this setting if you'd prefer to be able to immediately run `Remove callout from selected lines` instead (useful for switching between callout types):
 
-![Select text after inserting callout](./readme_assets/5-setting-select-text-after-inserting-callout.gif)
+![Select text after inserting callout](./readme_gifs/settings/select-text-after-inserting-callout.gif)
 
 ### Foldable callouts (default: unfoldable)
 
 Whether newly inserted callouts should be unfoldable, expanded, or collapsed by default.
+
+![Foldable callouts](./readme_gifs/settings/foldable-callouts.gif)
 
 ## Callout Manager integration (custom callouts)
 
