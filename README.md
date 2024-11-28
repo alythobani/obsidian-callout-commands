@@ -18,6 +18,7 @@ An [Obsidian plugin](https://obsidian.md/plugins?id=callout-toggles) to quickly 
    5. [Retaining custom titles](#retaining-custom-titles)
 4. [Available settings](#available-settings)
    1. [Select text after inserting callout (default: off)](#select-text-after-inserting-callout-default-off)
+   2. [Foldable callouts (default: unfoldable)](#foldable-callouts-default-unfoldable)
 5. [Callout Manager integration (custom callouts)](#callout-manager-integration-custom-callouts)
 6. [Related plugins](#related-plugins)
 7. [Feedback](#feedback)
@@ -89,6 +90,10 @@ This makes it easy to switch between callout types while retaining your custom t
 When enabled, callout text will be automatically selected after insertion, even if no text was initially selected (i.e. when inserting a fresh callout or wrapping the current line). Keep this setting disabled if you'd prefer to be able to immediately start typing content after inserting/wrapping. Enable this setting if you'd prefer to be able to immediately run `Remove callout from selected lines` instead (useful for switching between callout types):
 
 ![Select text after inserting callout](./readme_assets/5-setting-select-text-after-inserting-callout.gif)
+
+### Foldable callouts (default: unfoldable)
+
+Whether newly inserted callouts should be unfoldable, expanded, or collapsed by default.
 
 ## Callout Manager integration (custom callouts)
 
