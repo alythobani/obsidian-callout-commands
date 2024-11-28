@@ -1,5 +1,6 @@
 import { Editor } from "obsidian";
 import { CalloutID } from "obsidian-callout-manager";
+import { PluginSettingsManager } from "../../pluginSettingsManager";
 import { NonEmptyStringArray } from "../../utils/arrayUtils";
 import {
   getCustomHeadingTitleIfExists,
@@ -16,12 +17,21 @@ import { getTextLines } from "../../utils/stringUtils";
 /**
  * Wraps the selected lines in a callout.
  */
-export function wrapSelectedLinesInCallout(editor: Editor, calloutID: CalloutID): void {
+export function wrapSelectedLinesInCallout(
+  editor: Editor,
+  calloutID: CalloutID,
+  pluginSettingsManager: PluginSettingsManager
+): void {
   const originalCursorPositions = getCursorPositions(editor); // Save cursor positions before editing
   const { selectedLinesRange, selectedLinesText } = getSelectedLinesRangeAndText(editor);
   const selectedLines = getTextLines(selectedLinesText);
   const { title, rawBodyLines } = getCalloutTitleAndBodyFromSelectedLines(calloutID, selectedLines);
-  const newCalloutLines = getNewCalloutLines({ calloutID, title, rawBodyLines });
+  const newCalloutLines = getNewCalloutLines({
+    calloutID,
+    title,
+    rawBodyLines,
+    pluginSettingsManager,
+  });
   const selectedLinesDiff = { oldLines: selectedLines, newLines: newCalloutLines };
   replaceLinesAndAdjustSelection({
     editor,
@@ -57,12 +67,14 @@ function getNewCalloutLines({
   calloutID,
   title,
   rawBodyLines,
+  pluginSettingsManager,
 }: {
   calloutID: CalloutID;
   title: string;
   rawBodyLines: string[];
+  pluginSettingsManager: PluginSettingsManager;
 }): NonEmptyStringArray {
-  const calloutHeader = makeCalloutHeader({ calloutID, title });
+  const calloutHeader = makeCalloutHeader({ calloutID, title, pluginSettingsManager });
   const calloutBodyLines = rawBodyLines.map((line) => `> ${line}`);
   return [calloutHeader, ...calloutBodyLines];
 }

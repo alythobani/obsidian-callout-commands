@@ -1,14 +1,18 @@
 import { Plugin, PluginSettingTab, Setting, ToggleComponent } from "obsidian";
 import { REMOVE_CALLOUT_FROM_SELECTED_LINES_COMMAND } from "./commands/removeCallout";
 
+type DefaultFoldableState = "unfoldable" | "foldable-expanded" | "foldable-collapsed";
+
 export interface PluginSettings {
   shouldSetSelectionAfterCurrentLineWrap: boolean;
+  defaultFoldableState: DefaultFoldableState;
 }
 
 type SettingKey = keyof PluginSettings;
 
 const DEFAULT_SETTINGS: PluginSettings = {
   shouldSetSelectionAfterCurrentLineWrap: false,
+  defaultFoldableState: "unfoldable",
 };
 
 export class PluginSettingsManager extends PluginSettingTab {
@@ -33,7 +37,7 @@ export class PluginSettingsManager extends PluginSettingTab {
     this.plugin.addSettingTab(this);
   }
 
-  public getSetting(settingKey: SettingKey): PluginSettings[SettingKey] {
+  public getSetting<K extends SettingKey>(settingKey: K): PluginSettings[K] {
     return this.settings[settingKey];
   }
 
@@ -50,7 +54,12 @@ export class PluginSettingsManager extends PluginSettingTab {
 
     containerEl.empty();
 
-    new Setting(containerEl)
+    this.displaySelectTextAfterInsertingCalloutSetting();
+    this.displayDefaultFoldableStateSetting();
+  }
+
+  private displaySelectTextAfterInsertingCalloutSetting(): void {
+    new Setting(this.containerEl)
       .setName("Select text after inserting callout")
       .setDesc(
         "Whether to select a callout's text after insertion, even if no text was selected before." +
@@ -58,6 +67,24 @@ export class PluginSettingsManager extends PluginSettingTab {
           ` '${REMOVE_CALLOUT_FROM_SELECTED_LINES_COMMAND.name}' immediately afterwards.`
       )
       .addToggle(this.setupSetSelectionToggle.bind(this));
+  }
+
+  private displayDefaultFoldableStateSetting(): void {
+    new Setting(this.containerEl)
+      .setName("Foldable callouts")
+      .setDesc(
+        "The default foldable/folded state for inserted callouts: unfoldable, expanded, or collapsed."
+      )
+      .addDropdown((dropdown) =>
+        dropdown
+          .addOption("unfoldable", "Unfoldable")
+          .addOption("foldable-expanded", "Foldable, expanded")
+          .addOption("foldable-collapsed", "Foldable, collapsed")
+          .setValue(this.settings.defaultFoldableState)
+          .onChange((value) =>
+            this.setSetting("defaultFoldableState", value as DefaultFoldableState)
+          )
+      );
   }
 
   private setupSetSelectionToggle(toggle: ToggleComponent): ToggleComponent {

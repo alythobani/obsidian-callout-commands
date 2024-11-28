@@ -26,12 +26,12 @@ function wrapLinesInCallout(
   pluginSettingsManager: PluginSettingsManager
 ): void {
   if (editor.somethingSelected()) {
-    wrapSelectedLinesInCallout(editor, calloutID);
+    wrapSelectedLinesInCallout(editor, calloutID, pluginSettingsManager);
     return;
   }
   wrapCurrentLineInCallout({
     editor,
     calloutID,
-    shouldSetSelection: pluginSettingsManager.getSetting("shouldSetSelectionAfterCurrentLineWrap"),
+    pluginSettingsManager
   });
 }

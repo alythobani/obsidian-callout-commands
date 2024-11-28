@@ -1,5 +1,6 @@
 import { Editor, EditorPosition } from "obsidian";
 import { CalloutID } from "obsidian-callout-manager";
+import { PluginSettingsManager } from "../../pluginSettingsManager";
 import { makeDefaultCalloutHeader } from "../../utils/calloutTitleUtils";
 
 /**
@@ -8,22 +9,26 @@ import { makeDefaultCalloutHeader } from "../../utils/calloutTitleUtils";
 export function wrapCurrentLineInCallout({
   editor,
   calloutID,
-  shouldSetSelection,
+  pluginSettingsManager,
 }: {
   editor: Editor;
   calloutID: CalloutID;
-  shouldSetSelection: boolean;
+  pluginSettingsManager: PluginSettingsManager;
 }): void {
   const cursor = editor.getCursor();
   const { line } = cursor;
   const lineText = editor.getLine(line);
-  const newCalloutText = getNewCalloutText(calloutID, lineText);
+  const newCalloutText = getNewCalloutText(calloutID, lineText, pluginSettingsManager);
   editor.replaceRange(newCalloutText, { line, ch: 0 }, { line, ch: lineText.length });
-  setSelectionOrCursor({ editor, oldCursor: cursor, lineText, shouldSetSelection });
+  setSelectionOrCursor({ editor, oldCursor: cursor, lineText, pluginSettingsManager });
 }
 
-function getNewCalloutText(calloutID: string, lineText: string): string {
-  const calloutHeader = makeDefaultCalloutHeader(calloutID);
+function getNewCalloutText(
+  calloutID: string,
+  lineText: string,
+  pluginSettingsManager: PluginSettingsManager
+): string {
+  const calloutHeader = makeDefaultCalloutHeader(calloutID, pluginSettingsManager);
   const prependedLine = `> ${lineText}`;
   const newCalloutText = `${calloutHeader}\n${prependedLine}`;
   return newCalloutText;
@@ -37,13 +42,16 @@ function setSelectionOrCursor({
   editor,
   oldCursor,
   lineText,
-  shouldSetSelection,
+  pluginSettingsManager,
 }: {
   editor: Editor;
   oldCursor: EditorPosition;
   lineText: string;
-  shouldSetSelection: boolean;
+  pluginSettingsManager: PluginSettingsManager;
 }): void {
+  const shouldSetSelection = pluginSettingsManager.getSetting(
+    "shouldSetSelectionAfterCurrentLineWrap"
+  );
   if (shouldSetSelection) {
     setSelection({ editor, oldCursor, lineText });
     return;
