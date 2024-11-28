@@ -15,15 +15,12 @@ export function wrapCurrentLineInCallout({
   calloutID: CalloutID;
   pluginSettingsManager: PluginSettingsManager;
 }): void {
-  const shouldSetSelection = pluginSettingsManager.getSetting(
-    "shouldSetSelectionAfterCurrentLineWrap"
-  );
   const cursor = editor.getCursor();
   const { line } = cursor;
   const lineText = editor.getLine(line);
   const newCalloutText = getNewCalloutText(calloutID, lineText, pluginSettingsManager);
   editor.replaceRange(newCalloutText, { line, ch: 0 }, { line, ch: lineText.length });
-  setSelectionOrCursor({ editor, oldCursor: cursor, lineText, shouldSetSelection });
+  setSelectionOrCursor({ editor, oldCursor: cursor, lineText, pluginSettingsManager });
 }
 
 function getNewCalloutText(
@@ -45,13 +42,16 @@ function setSelectionOrCursor({
   editor,
   oldCursor,
   lineText,
-  shouldSetSelection,
+  pluginSettingsManager,
 }: {
   editor: Editor;
   oldCursor: EditorPosition;
   lineText: string;
-  shouldSetSelection: boolean;
+  pluginSettingsManager: PluginSettingsManager;
 }): void {
+  const shouldSetSelection = pluginSettingsManager.getSetting(
+    "shouldSetSelectionAfterCurrentLineWrap"
+  );
   if (shouldSetSelection) {
     setSelection({ editor, oldCursor, lineText });
     return;
