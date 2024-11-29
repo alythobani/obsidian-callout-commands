@@ -19,6 +19,7 @@ An [Obsidian plugin](https://obsidian.md/plugins?id=callout-toggles) to quickly 
 4. [Available settings](#available-settings)
    1. [Select text after inserting callout (default: off)](#select-text-after-inserting-callout-default-off)
    2. [Foldable callouts (default: unfoldable)](#foldable-callouts-default-unfoldable)
+   3. [Callout ID capitalization (default: lowercase)](#callout-id-capitalization-default-lowercase)
 5. [Callout Manager integration (custom callouts)](#callout-manager-integration-custom-callouts)
 6. [Related plugins](#related-plugins)
 7. [Feedback](#feedback)
@@ -85,17 +86,28 @@ This makes it easy to switch between callout types while retaining your custom t
 ### Select text after inserting callout (default: off)
 
 > [!NOTE]
-> This setting only affects what `Wrap lines in X callout` does *when no text is initially selected*.
+> This setting only affects what `Wrap lines in X callout` does *when no text is initially selected*. When text is already selected, the selection is expanded to include the new callout's header for convenience, regardless of this setting.
 
-When enabled, callout text will be automatically selected after insertion, even if no text was initially selected (e.g. when inserting a fresh callout or wrapping the current line). Keep this setting disabled if you'd prefer to be able to immediately start typing content after inserting/wrapping. Enable this setting if you'd prefer to be able to immediately run `Remove callout from selected lines` instead (useful for switching between callout types):
+Whether to auto-select text up until the cursor, after inserting a callout with no text selected—e.g. when inserting a fresh callout, or wrapping the current line.
+
+Keep this setting disabled if you'd prefer to keep typing content after inserting/wrapping. Enable this setting if you'd prefer to be able to immediately run `Remove callout from selected lines` instead (useful for switching between callout types):
 
 ![Select text after inserting callout](./readme_gifs/settings/select-text-after-inserting-callout.gif)
 
 ### Foldable callouts (default: unfoldable)
 
-Whether newly inserted callouts should be unfoldable, expanded, or collapsed by default.
+Whether inserted callouts should be unfoldable, expanded, or collapsed by default.
 
 ![Foldable callouts](./readme_gifs/settings/foldable-callouts.gif)
+
+### Callout ID capitalization (default: lowercase)
+
+You can choose from the following default capitalization formats for inserted callout IDs:
+
+- Lowercase: E.g. `> [!my-custom-callout]`
+- Uppercase: E.g. `> [!MY-CUSTOM-CALLOUT]`
+- Sentence case: E.g. `> [!My-custom-callout]`
+- Title case: E.g. `> [!My-Custom-Callout]`
 
 ## Callout Manager integration (custom callouts)
 

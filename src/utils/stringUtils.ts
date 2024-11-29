@@ -9,8 +9,14 @@ export function getTextLines(text: string): NonEmptyStringArray {
   return text.split("\n") as NonEmptyStringArray;
 }
 
-export function toTitleCaseWord(word: string): string {
-  const firstLetter = word.charAt(0).toUpperCase();
-  const rest = word.slice(1).toLowerCase();
+export function toTitleCase(text: string): string {
+  const words = text.split(/\s|-/);
+  const capitalizedWords = words.map((word) => toSentenceCase(word));
+  return capitalizedWords.join(" ");
+}
+
+export function toSentenceCase(text: string): string {
+  const firstLetter = text.charAt(0).toUpperCase();
+  const rest = text.slice(1).toLowerCase();
   return `${firstLetter}${rest}`;
 }
