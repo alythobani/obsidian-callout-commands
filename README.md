@@ -17,9 +17,10 @@ An [Obsidian plugin](https://obsidian.md/plugins?id=callout-toggles) to quickly 
    4. [Removing a callout](#removing-a-callout)
    5. [Retaining custom titles](#retaining-custom-titles)
 4. [Available settings](#available-settings)
-   1. [Select text after inserting callout (default: off)](#select-text-after-inserting-callout-default-off)
-   2. [Foldable callouts (default: unfoldable)](#foldable-callouts-default-unfoldable)
-   3. [Callout ID capitalization (default: lowercase)](#callout-id-capitalization-default-lowercase)
+   1. [Explicit callout titles (default: on)](#explicit-callout-titles-default-on)
+   2. [Callout ID capitalization (default: lowercase)](#callout-id-capitalization-default-lowercase)
+   3. [Foldable callouts (default: unfoldable)](#foldable-callouts-default-unfoldable)
+   4. [Select text after inserting callout (default: off)](#select-text-after-inserting-callout-default-off)
 5. [Callout Manager integration (custom callouts)](#callout-manager-integration-custom-callouts)
 6. [Related plugins](#related-plugins)
 7. [Feedback](#feedback)
@@ -83,16 +84,18 @@ This makes it easy to switch between callout types while retaining your custom t
 
 ## Available settings
 
-### Select text after inserting callout (default: off)
+### Explicit callout titles (default: on)
 
-> [!NOTE]
-> This setting only affects what `Wrap lines in X callout` does *when no text is initially selected*. When text is already selected, the selection is expanded to include the new callout's header for convenience, regardless of this setting.
+Whether inserted callouts should have an explicit (e.g., `> [!quote] Quote`) or implicit (e.g., `> [!quote]`) title by default.
 
-Whether to auto-select text up until the cursor, after inserting a callout with no text selected—e.g. when inserting a fresh callout, or wrapping the current line.
+### Callout ID capitalization (default: lowercase)
 
-Keep this setting disabled if you'd prefer to keep typing content after inserting/wrapping. Enable this setting if you'd prefer to be able to immediately run `Remove callout from selected lines` instead (useful for switching between callout types):
+The default capitalization format used for inserted callout IDs:
 
-![Select text after inserting callout](./readme_gifs/settings/select-text-after-inserting-callout.gif)
+- Lowercase: E.g. `> [!my-custom-callout]`
+- Uppercase: E.g. `> [!MY-CUSTOM-CALLOUT]`
+- Sentence case: E.g. `> [!My-custom-callout]`
+- Title case: E.g. `> [!My-Custom-Callout]`
 
 ### Foldable callouts (default: unfoldable)
 
@@ -100,14 +103,16 @@ Whether inserted callouts should be unfoldable, expanded, or collapsed by defaul
 
 ![Foldable callouts](./readme_gifs/settings/foldable-callouts.gif)
 
-### Callout ID capitalization (default: lowercase)
+### Select text after inserting callout (default: off)
 
-You can choose from the following default capitalization formats for inserted callout IDs:
+> [!NOTE]
+> This setting only affects what `Wrap lines in X callout` does *when no text is selected*. When text is already selected, the new callout's header is auto-selected for convenience, regardless of this setting.
 
-- Lowercase: E.g. `> [!my-custom-callout]`
-- Uppercase: E.g. `> [!MY-CUSTOM-CALLOUT]`
-- Sentence case: E.g. `> [!My-custom-callout]`
-- Title case: E.g. `> [!My-Custom-Callout]`
+Whether to auto-select text up until the cursor, after inserting a callout with no text selected—e.g. when inserting a fresh callout, or wrapping the current line.
+
+Keep this setting disabled if you'd prefer to keep typing content after inserting/wrapping. Enable this setting if you'd prefer to be able to immediately run `Remove callout from selected lines` instead (useful for switching between callout types):
+
+![Select text after inserting callout](./readme_gifs/settings/select-text-after-inserting-callout.gif)
 
 ## Callout Manager integration (custom callouts)
 

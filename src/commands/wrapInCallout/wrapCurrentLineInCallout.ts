@@ -1,7 +1,7 @@
 import { Editor, EditorPosition } from "obsidian";
 import { CalloutID } from "obsidian-callout-manager";
 import { PluginSettingsManager } from "../../pluginSettingsManager";
-import { makeDefaultCalloutHeader } from "../../utils/calloutTitleUtils";
+import { makeNewCalloutHeader } from "../../utils/calloutTitleUtils";
 
 /**
  * Wraps the cursor's current line in a callout.
@@ -28,7 +28,7 @@ function getNewCalloutText(
   lineText: string,
   pluginSettingsManager: PluginSettingsManager
 ): string {
-  const calloutHeader = makeDefaultCalloutHeader(calloutID, pluginSettingsManager);
+  const calloutHeader = makeNewCalloutHeader(calloutID, pluginSettingsManager);
   const prependedLine = `> ${lineText}`;
   const newCalloutText = `${calloutHeader}\n${prependedLine}`;
   return newCalloutText;

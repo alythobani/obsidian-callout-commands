@@ -4,8 +4,8 @@ import { PluginSettingsManager } from "../../pluginSettingsManager";
 import { NonEmptyStringArray } from "../../utils/arrayUtils";
 import {
   getCustomHeadingTitleIfExists,
-  getDefaultCalloutTitle,
   makeCalloutHeader,
+  maybeMakeExplicitTitle,
 } from "../../utils/calloutTitleUtils";
 import {
   getCursorPositions,
@@ -25,10 +25,14 @@ export function wrapSelectedLinesInCallout(
   const originalCursorPositions = getCursorPositions(editor); // Save cursor positions before editing
   const { selectedLinesRange, selectedLinesText } = getSelectedLinesRangeAndText(editor);
   const selectedLines = getTextLines(selectedLinesText);
-  const { title, rawBodyLines } = getCalloutTitleAndBodyFromSelectedLines(calloutID, selectedLines);
+  const { maybeExplicitTitle, rawBodyLines } = getCalloutTitleAndBodyFromSelectedLines(
+    calloutID,
+    selectedLines,
+    pluginSettingsManager
+  );
   const newCalloutLines = getNewCalloutLines({
     calloutID,
-    title,
+    maybeExplicitTitle,
     rawBodyLines,
     pluginSettingsManager,
   });
@@ -49,15 +53,16 @@ export function wrapSelectedLinesInCallout(
  */
 function getCalloutTitleAndBodyFromSelectedLines(
   calloutID: CalloutID,
-  selectedLines: NonEmptyStringArray
-): { title: string; rawBodyLines: string[] } {
+  selectedLines: NonEmptyStringArray,
+  pluginSettingsManager: PluginSettingsManager
+): { maybeExplicitTitle: string | null; rawBodyLines: string[] } {
   const [firstSelectedLine, ...restSelectedLines] = selectedLines;
   const maybeHeadingTitle = getCustomHeadingTitleIfExists({ firstSelectedLine });
   if (maybeHeadingTitle === undefined) {
-    const defaultCalloutTitle = getDefaultCalloutTitle(calloutID);
-    return { title: defaultCalloutTitle, rawBodyLines: selectedLines };
+    const maybeExplicitTitle = maybeMakeExplicitTitle(calloutID, pluginSettingsManager);
+    return { maybeExplicitTitle, rawBodyLines: selectedLines };
   }
-  return { title: maybeHeadingTitle, rawBodyLines: restSelectedLines };
+  return { maybeExplicitTitle: maybeHeadingTitle, rawBodyLines: restSelectedLines };
 }
 
 /**
@@ -65,16 +70,20 @@ function getCalloutTitleAndBodyFromSelectedLines(
  */
 function getNewCalloutLines({
   calloutID,
-  title,
+  maybeExplicitTitle,
   rawBodyLines,
   pluginSettingsManager,
 }: {
   calloutID: CalloutID;
-  title: string;
+  maybeExplicitTitle: string | null;
   rawBodyLines: string[];
   pluginSettingsManager: PluginSettingsManager;
 }): NonEmptyStringArray {
-  const calloutHeader = makeCalloutHeader({ calloutID, title, pluginSettingsManager });
+  const calloutHeader = makeCalloutHeader({
+    calloutID,
+    maybeExplicitTitle,
+    pluginSettingsManager,
+  });
   const calloutBodyLines = rawBodyLines.map((line) => `> ${line}`);
   return [calloutHeader, ...calloutBodyLines];
 }
