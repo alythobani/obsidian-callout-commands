@@ -2,10 +2,12 @@ import { Plugin, PluginSettingTab, Setting, ToggleComponent } from "obsidian";
 import { REMOVE_CALLOUT_FROM_SELECTED_LINES_COMMAND } from "./commands/removeCallout";
 
 type DefaultFoldableState = "unfoldable" | "foldable-expanded" | "foldable-collapsed";
+type CalloutIDCapitalization = "lower" | "upper" | "sentence" | "title";
 
 export interface PluginSettings {
   shouldSetSelectionAfterCurrentLineWrap: boolean;
   defaultFoldableState: DefaultFoldableState;
+  calloutIDCapitalization: CalloutIDCapitalization;
 }
 
 type SettingKey = keyof PluginSettings;
@@ -13,6 +15,7 @@ type SettingKey = keyof PluginSettings;
 const DEFAULT_SETTINGS: PluginSettings = {
   shouldSetSelectionAfterCurrentLineWrap: false,
   defaultFoldableState: "unfoldable",
+  calloutIDCapitalization: "lower",
 };
 
 export class PluginSettingsManager extends PluginSettingTab {
@@ -56,6 +59,7 @@ export class PluginSettingsManager extends PluginSettingTab {
 
     this.displaySelectTextAfterInsertingCalloutSetting();
     this.displayDefaultFoldableStateSetting();
+    this.displayCalloutIDCapitalizationSetting();
   }
 
   private displaySelectTextAfterInsertingCalloutSetting(): void {
@@ -83,6 +87,25 @@ export class PluginSettingsManager extends PluginSettingTab {
           .setValue(this.settings.defaultFoldableState)
           .onChange((value) =>
             this.setSetting("defaultFoldableState", value as DefaultFoldableState)
+          )
+      );
+  }
+
+  private displayCalloutIDCapitalizationSetting(): void {
+    new Setting(this.containerEl)
+      .setName("Callout ID capitalization")
+      .setDesc(
+        "The default capitalization for inserted callout IDs (e.g. `> [!quote]` vs `> [!QUOTE]`)."
+      )
+      .addDropdown((dropdown) =>
+        dropdown
+          .addOption("lower", "lower-case")
+          .addOption("upper", "UPPER-CASE")
+          .addOption("sentence", "Sentence-case")
+          .addOption("title", "Title-Case")
+          .setValue(this.settings.calloutIDCapitalization)
+          .onChange((value) =>
+            this.setSetting("calloutIDCapitalization", value as CalloutIDCapitalization)
           )
       );
   }

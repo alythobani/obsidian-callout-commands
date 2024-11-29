@@ -1,7 +1,7 @@
 import { PluginSettingsManager } from "../pluginSettingsManager";
 import { throwNever } from "./errorUtils";
 import { getTrimmedFirstCapturingGroupIfExists } from "./regexUtils";
-import { toTitleCaseWord } from "./stringUtils";
+import { toSentenceCase } from "./stringUtils";
 
 export const CALLOUT_HEADER_WITH_ID_CAPTURE_REGEX = /^> \[!(.+)\]/;
 const CALLOUT_TITLE_REGEX = /^> \[!.+\][+-]? (.+)/;
@@ -16,13 +16,39 @@ export function makeCalloutHeader({
   title: string;
   pluginSettingsManager: PluginSettingsManager;
 }): string {
-  const baseCalloutHeader = makeBaseCalloutHeader(calloutID);
+  const baseCalloutHeader = makeBaseCalloutHeader(calloutID, pluginSettingsManager);
   const foldableSuffix = makeFoldableSuffix(pluginSettingsManager);
   return `${baseCalloutHeader}${foldableSuffix} ${title}`;
 }
 
-function makeBaseCalloutHeader(calloutID: string): string {
-  return `> [!${calloutID}]`;
+function makeBaseCalloutHeader(
+  calloutID: string,
+  pluginSettingsManager: PluginSettingsManager
+): string {
+  const capitalizedCalloutID = makeCapitalizedCalloutID(calloutID, pluginSettingsManager);
+  return `> [!${capitalizedCalloutID}]`;
+}
+
+function makeCapitalizedCalloutID(
+  calloutID: string,
+  pluginSettingsManager: PluginSettingsManager
+): string {
+  const calloutIDCapitalization = pluginSettingsManager.getSetting("calloutIDCapitalization");
+  switch (calloutIDCapitalization) {
+    case "lower":
+      return calloutID.toLowerCase();
+    case "upper":
+      return calloutID.toUpperCase();
+    case "sentence":
+      return toSentenceCase(calloutID);
+    case "title":
+      return calloutID
+        .split("-")
+        .map((word) => toSentenceCase(word))
+        .join("-");
+    default:
+      throwNever(calloutIDCapitalization);
+  }
 }
 
 function makeFoldableSuffix(pluginSettingsManager: PluginSettingsManager): string {
@@ -40,7 +66,7 @@ function makeFoldableSuffix(pluginSettingsManager: PluginSettingsManager): strin
 }
 
 export function getDefaultCalloutTitle(calloutID: string): string {
-  return toTitleCaseWord(calloutID).replace(/-/g, " ");
+  return toSentenceCase(calloutID).replace(/-/g, " ");
 }
 
 export function makeDefaultCalloutHeader(
