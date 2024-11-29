@@ -104,7 +104,8 @@ export function getCalloutIDAndExplicitTitle(fullCalloutText: string): {
   maybeExplicitTitle: string | undefined;
 } {
   const calloutID = getCalloutID(fullCalloutText);
-  return { calloutID, maybeExplicitTitle: getTrimmedCalloutTitleIfExists(fullCalloutText) };
+  const maybeExplicitTitle = getTrimmedExplicitTitleIfExists(fullCalloutText);
+  return { calloutID, maybeExplicitTitle };
 }
 
 function getCalloutID(fullCalloutText: string): string {
@@ -127,7 +128,7 @@ function getTrimmedCalloutIDIfExists(fullCalloutText: string): string | undefine
  *
  * @param fullCalloutText The full text of the callout (both the header and the body).
  */
-function getTrimmedCalloutTitleIfExists(fullCalloutText: string): string | undefined {
+function getTrimmedExplicitTitleIfExists(fullCalloutText: string): string | undefined {
   return getTrimmedFirstCapturingGroupIfExists(CALLOUT_TITLE_REGEX, fullCalloutText);
 }
 
@@ -160,7 +161,7 @@ function getTrimmedHeadingTitleIfExists(firstSelectedLine: string): string | und
  * the default title for the given callout.
  */
 export function isCustomTitle({ calloutID, title }: { calloutID: string; title: string }): boolean {
-  return title !== getDefaultCalloutTitle(calloutID);
+  return title !== "" && title !== getDefaultCalloutTitle(calloutID);
 }
 
 function getDefaultCalloutTitle(calloutID: string): string {
