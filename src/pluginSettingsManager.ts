@@ -1,21 +1,22 @@
 import { Plugin, PluginSettingTab, Setting, ToggleComponent } from "obsidian";
-import { REMOVE_CALLOUT_FROM_SELECTED_LINES_COMMAND } from "./commands/removeCallout";
 
 type DefaultFoldableState = "unfoldable" | "foldable-expanded" | "foldable-collapsed";
 type CalloutIDCapitalization = "lower" | "upper" | "sentence" | "title";
 
 export interface PluginSettings {
-  shouldSetSelectionAfterCurrentLineWrap: boolean;
-  defaultFoldableState: DefaultFoldableState;
+  shouldUseExplicitTitle: boolean;
   calloutIDCapitalization: CalloutIDCapitalization;
+  defaultFoldableState: DefaultFoldableState;
+  shouldSetSelectionAfterCurrentLineWrap: boolean;
 }
 
 type SettingKey = keyof PluginSettings;
 
 const DEFAULT_SETTINGS: PluginSettings = {
-  shouldSetSelectionAfterCurrentLineWrap: false,
-  defaultFoldableState: "unfoldable",
+  shouldUseExplicitTitle: true,
   calloutIDCapitalization: "lower",
+  defaultFoldableState: "unfoldable",
+  shouldSetSelectionAfterCurrentLineWrap: false,
 };
 
 export class PluginSettingsManager extends PluginSettingTab {
@@ -57,27 +58,49 @@ export class PluginSettingsManager extends PluginSettingTab {
 
     containerEl.empty();
 
-    this.displaySelectTextAfterInsertingCalloutSetting();
-    this.displayDefaultFoldableStateSetting();
+    this.displayExplicitCalloutTitlesSetting();
     this.displayCalloutIDCapitalizationSetting();
+    this.displayDefaultFoldableStateSetting();
+    this.displaySelectTextAfterInsertingCalloutSetting();
   }
 
-  private displaySelectTextAfterInsertingCalloutSetting(): void {
+  private displayExplicitCalloutTitlesSetting(): void {
     new Setting(this.containerEl)
-      .setName("Select text after inserting callout")
+      .setName("Explicit callout titles")
       .setDesc(
-        "Whether to select a callout's text after insertion, even if no text was selected before." +
-          " This can be useful if you want to be able to run" +
-          ` '${REMOVE_CALLOUT_FROM_SELECTED_LINES_COMMAND.name}' immediately afterwards.`
+        "Whether inserted callouts should have an explicit or implicit title by default. E.g. `> [!quote] Quote` vs `> [!quote]`."
       )
-      .addToggle(this.setupSetSelectionToggle.bind(this));
+      .addToggle((toggle) =>
+        toggle
+          .setValue(this.settings.shouldUseExplicitTitle)
+          .onChange((value) => this.setSetting("shouldUseExplicitTitle", value))
+      );
+  }
+
+  private displayCalloutIDCapitalizationSetting(): void {
+    new Setting(this.containerEl)
+      .setName("Callout ID capitalization")
+      .setDesc(
+        "The default capitalization for inserted callout IDs. E.g. `> [!quote]` vs `> [!QUOTE]`."
+      )
+      .addDropdown((dropdown) =>
+        dropdown
+          .addOption("lower", "lower-case")
+          .addOption("upper", "UPPER-CASE")
+          .addOption("sentence", "Sentence-case")
+          .addOption("title", "Title-Case")
+          .setValue(this.settings.calloutIDCapitalization)
+          .onChange((value) =>
+            this.setSetting("calloutIDCapitalization", value as CalloutIDCapitalization)
+          )
+      );
   }
 
   private displayDefaultFoldableStateSetting(): void {
     new Setting(this.containerEl)
       .setName("Foldable callouts")
       .setDesc(
-        "The default foldable/folded state for inserted callouts: unfoldable, expanded, or collapsed."
+        "The default folded state for inserted callouts: unfoldable, expanded, or collapsed. E.g. `> [!quote]` vs `> [!quote]+` vs `> [!quote]-`."
       )
       .addDropdown((dropdown) =>
         dropdown
@@ -91,23 +114,14 @@ export class PluginSettingsManager extends PluginSettingTab {
       );
   }
 
-  private displayCalloutIDCapitalizationSetting(): void {
+  private displaySelectTextAfterInsertingCalloutSetting(): void {
     new Setting(this.containerEl)
-      .setName("Callout ID capitalization")
+      .setName("Select text after inserting callout")
       .setDesc(
-        "The default capitalization for inserted callout IDs (e.g. `> [!quote]` vs `> [!QUOTE]`)."
+        "Whether to auto-select text, after inserting a callout with no text selected. " +
+          "Leave disabled if you'd prefer to be able to keep typing content after inserting/wrapping."
       )
-      .addDropdown((dropdown) =>
-        dropdown
-          .addOption("lower", "lower-case")
-          .addOption("upper", "UPPER-CASE")
-          .addOption("sentence", "Sentence-case")
-          .addOption("title", "Title-Case")
-          .setValue(this.settings.calloutIDCapitalization)
-          .onChange((value) =>
-            this.setSetting("calloutIDCapitalization", value as CalloutIDCapitalization)
-          )
-      );
+      .addToggle(this.setupSetSelectionToggle.bind(this));
   }
 
   private setupSetSelectionToggle(toggle: ToggleComponent): ToggleComponent {

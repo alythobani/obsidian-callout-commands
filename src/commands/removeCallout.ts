@@ -1,7 +1,7 @@
 import { Command, Editor } from "obsidian";
 import { isNonEmptyArray, NonEmptyStringArray } from "../utils/arrayUtils";
 import {
-  getCalloutIDAndEffectiveTitle,
+  getCalloutIDAndExplicitTitle,
   isCustomTitle,
   makeH6Line,
 } from "../utils/calloutTitleUtils";
@@ -27,8 +27,12 @@ function removeCalloutFromSelectedLines(editor: Editor): void {
   const originalCursorPositions = getCursorPositions(editor);
   const { selectedLinesRange, selectedLinesText } = getSelectedLinesRangeAndText(editor); // Full selected lines range and text
   const selectedLines = getTextLines(selectedLinesText);
-  const { calloutID, effectiveTitle } = getCalloutIDAndEffectiveTitle(selectedLinesText);
-  const newLines = getNewLinesAfterRemovingCallout({ calloutID, effectiveTitle, selectedLines });
+  const { calloutID, maybeExplicitTitle } = getCalloutIDAndExplicitTitle(selectedLinesText);
+  const newLines = getNewLinesAfterRemovingCallout({
+    calloutID,
+    maybeExplicitTitle,
+    selectedLines,
+  });
   const selectedLinesDiff = { oldLines: selectedLines, newLines };
   replaceLinesAndAdjustSelection({
     editor,
@@ -43,15 +47,15 @@ function removeCalloutFromSelectedLines(editor: Editor): void {
  */
 function getNewLinesAfterRemovingCallout({
   calloutID,
-  effectiveTitle,
+  maybeExplicitTitle,
   selectedLines,
 }: {
   calloutID: string;
-  effectiveTitle: string;
+  maybeExplicitTitle: string | undefined;
   selectedLines: NonEmptyStringArray;
 }): NonEmptyStringArray {
-  if (isCustomTitle({ calloutID, title: effectiveTitle })) {
-    return getNewLinesAfterRemovingCalloutWithCustomTitle(effectiveTitle, selectedLines);
+  if (maybeExplicitTitle !== undefined && isCustomTitle({ calloutID, title: maybeExplicitTitle })) {
+    return getNewLinesAfterRemovingCalloutWithCustomTitle(maybeExplicitTitle, selectedLines);
   }
   return getNewLinesAfterRemovingCalloutWithDefaultTitle(selectedLines);
 }
