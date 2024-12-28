@@ -13,8 +13,8 @@ export const whenTextSelectedAutoSelectionOptions: readonly TypedDropdownOption<
   [
     { value: "selectHeaderToCursor", displayText: "Select from header to cursor" },
     { value: "selectFull", displayText: "Select full callout" },
-    { value: "originalSelection", displayText: "Keep relative selection" },
     { value: "selectTitle", displayText: "Select callout title" },
+    { value: "originalSelection", displayText: "Keep relative selection" },
     { value: "clearSelectionCursorEnd", displayText: "Clear selection, move cursor to end" },
   ];
 
@@ -28,22 +28,22 @@ export const afterRemovingCalloutAutoSelectionOptions: readonly TypedDropdownOpt
   ];
 
 export type AutoSelectionWhenNothingSelectedMode =
-  | "selectFull"
   | "selectHeaderToCursor"
+  | "selectFull"
   | "selectTitle"
   | "originalCursor"
   | "cursorEnd";
 
 export type AutoSelectionWhenTextSelectedMode =
   | "selectHeaderToCursor"
-  | "originalSelection"
   | "selectFull"
   | "selectTitle"
+  | "originalSelection"
   | "clearSelectionCursorEnd";
 
 export type AutoSelectionAfterRemovingCalloutModes =
-  | "selectFull"
   | "originalSelection"
+  | "selectFull"
   | "clearSelectionCursorTo"
   | "clearSelectionCursorStart"
   | "clearSelectionCursorEnd";
