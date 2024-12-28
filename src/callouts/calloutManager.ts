@@ -1,7 +1,7 @@
-import { Plugin } from "obsidian";
+import { type Plugin } from "obsidian";
 import {
-  CalloutID,
-  CalloutManager,
+  type CalloutID,
+  type CalloutManager,
   getApi,
   isInstalled as isCalloutManagerInstalled,
 } from "obsidian-callout-manager";

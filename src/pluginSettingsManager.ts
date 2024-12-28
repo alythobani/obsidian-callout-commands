@@ -1,30 +1,72 @@
-import { Plugin, PluginSettingTab, Setting, ToggleComponent } from "obsidian";
+import { type Plugin, PluginSettingTab, Setting } from "obsidian";
+import {
+  afterRemovingCalloutAutoSelectionOptions,
+  type AutoSelectionModes,
+  DEFAULT_AUTO_SELECTION_MODES,
+  migrateV1SettingToV2AutoSelectionModes,
+  whenNothingSelectedAutoSelectionOptions,
+  whenTextSelectedAutoSelectionOptions,
+} from "./settings/autoSelectionModes";
+import { createTypedDropdownSetting } from "./settings/typedSettingsHelpers";
 
 type DefaultFoldableState = "unfoldable" | "foldable-expanded" | "foldable-collapsed";
 type CalloutIDCapitalization = "lower" | "upper" | "sentence" | "title";
 
-export interface PluginSettings {
+type PluginSettingsV1 = {
+  pluginVersion: undefined; // 1.1.0, but not set
   shouldUseExplicitTitle: boolean;
   calloutIDCapitalization: CalloutIDCapitalization;
   defaultFoldableState: DefaultFoldableState;
   shouldSetSelectionAfterCurrentLineWrap: boolean;
+};
+
+type PluginSettingsV2 = {
+  pluginVersion: "1.2.0";
+  shouldUseExplicitTitle: boolean;
+  calloutIDCapitalization: CalloutIDCapitalization;
+  defaultFoldableState: DefaultFoldableState;
+  autoSelectionModes: Readonly<AutoSelectionModes>;
+};
+
+/**
+ * Migrates empty or old settings to the current version (1.2.0), with default values as well as V1
+ * settings migrated to V2 equivalents.
+ */
+function migrateSettingsToV2(oldSettings: Partial<PluginSettingsV1>): PluginSettingsV2 {
+  const { shouldSetSelectionAfterCurrentLineWrap, pluginVersion: _, ...rest } = oldSettings;
+  if (shouldSetSelectionAfterCurrentLineWrap === undefined) {
+    return { ...deepCloneSettings(DEFAULT_SETTINGS), ...rest };
+  }
+  const autoSelectionModes = migrateV1SettingToV2AutoSelectionModes({
+    shouldSetSelectionAfterCurrentLineWrap,
+  });
+  return { ...DEFAULT_SETTINGS, ...rest, autoSelectionModes };
 }
 
-type SettingKey = keyof PluginSettings;
+type SettingKey = keyof PluginSettingsV2;
 
-const DEFAULT_SETTINGS: PluginSettings = {
+/**
+ * Deep-clones the given settings. There's currently only one nested object: `autoSelectionModes`.
+ */
+function deepCloneSettings(settings: PluginSettingsV2): PluginSettingsV2 {
+  const clone: PluginSettingsV2 = { ...settings };
+  clone.autoSelectionModes = { ...settings.autoSelectionModes };
+  return clone;
+}
+
+export const DEFAULT_SETTINGS: PluginSettingsV2 = {
+  pluginVersion: "1.2.0",
   shouldUseExplicitTitle: true,
   calloutIDCapitalization: "lower",
   defaultFoldableState: "unfoldable",
-  shouldSetSelectionAfterCurrentLineWrap: false,
+  autoSelectionModes: DEFAULT_AUTO_SELECTION_MODES,
 };
 
 export class PluginSettingsManager extends PluginSettingTab {
-  private settings: PluginSettings;
+  private settings: PluginSettingsV2 = deepCloneSettings(DEFAULT_SETTINGS);
 
   constructor(private plugin: Plugin) {
     super(plugin.app, plugin);
-    this.settings = Object.assign({}, DEFAULT_SETTINGS);
   }
 
   public async setupSettingsTab(): Promise<void> {
@@ -32,25 +74,42 @@ export class PluginSettingsManager extends PluginSettingTab {
     this.addSettingTab();
   }
 
-  private async loadSettings(): Promise<PluginSettings> {
-    const loadedSettings = (await this.plugin.loadData()) as PluginSettings;
-    return Object.assign({}, DEFAULT_SETTINGS, loadedSettings);
+  private async loadSettings(): Promise<PluginSettingsV2> {
+    const loadedSettings = (await this.plugin.loadData()) as
+      | Partial<PluginSettingsV1> // `Partial` since we didn't used to save full settings
+      | PluginSettingsV2;
+    console.log(`loadedSettings: ${JSON.stringify(loadedSettings)}`);
+    if (loadedSettings.pluginVersion !== "1.2.0") {
+      // Either empty or old settings (v1.1.0)
+      const migratedSettings = migrateSettingsToV2(loadedSettings);
+      await this.plugin.saveData(migratedSettings);
+      return migratedSettings;
+    }
+    return loadedSettings;
   }
 
   private addSettingTab(): void {
     this.plugin.addSettingTab(this);
   }
 
-  public getSetting<K extends SettingKey>(settingKey: K): PluginSettings[K] {
+  public getSetting<K extends SettingKey>(settingKey: K): PluginSettingsV2[K] {
     return this.settings[settingKey];
   }
 
   private async setSetting<K extends SettingKey>(
     settingKey: K,
-    value: PluginSettings[K]
+    value: PluginSettingsV2[K]
   ): Promise<void> {
     this.settings[settingKey] = value;
     await this.saveSettings();
+  }
+
+  private async setAutoSelectionMode<K extends keyof AutoSelectionModes>(
+    modeKey: K,
+    value: AutoSelectionModes[K]
+  ): Promise<void> {
+    const newAutoSelectionModes = { ...this.settings.autoSelectionModes, [modeKey]: value };
+    await this.setSetting("autoSelectionModes", newAutoSelectionModes);
   }
 
   display(): void {
@@ -58,10 +117,12 @@ export class PluginSettingsManager extends PluginSettingTab {
 
     containerEl.empty();
 
+    new Setting(containerEl).setName("Callout headers").setHeading();
     this.displayExplicitCalloutTitlesSetting();
     this.displayCalloutIDCapitalizationSetting();
     this.displayDefaultFoldableStateSetting();
-    this.displaySelectTextAfterInsertingCalloutSetting();
+
+    this.displayAutoSelectionModeSettings();
   }
 
   private displayExplicitCalloutTitlesSetting(): void {
@@ -78,56 +139,71 @@ export class PluginSettingsManager extends PluginSettingTab {
   }
 
   private displayCalloutIDCapitalizationSetting(): void {
-    new Setting(this.containerEl)
-      .setName("Callout ID capitalization")
-      .setDesc(
-        "The default capitalization for inserted callout IDs. E.g. `> [!quote]` vs `> [!QUOTE]`."
-      )
-      .addDropdown((dropdown) =>
-        dropdown
-          .addOption("lower", "lower-case")
-          .addOption("upper", "UPPER-CASE")
-          .addOption("sentence", "Sentence-case")
-          .addOption("title", "Title-Case")
-          .setValue(this.settings.calloutIDCapitalization)
-          .onChange((value) =>
-            this.setSetting("calloutIDCapitalization", value as CalloutIDCapitalization)
-          )
-      );
+    createTypedDropdownSetting({
+      containerEl: this.containerEl,
+      settingName: "Callout ID capitalization",
+      settingDescription:
+        "The default capitalization for inserted callout IDs. E.g. `> [!quote]` vs `> [!QUOTE]`.",
+      dropdownOptions: [
+        { value: "lower", displayText: "lower-case" },
+        { value: "upper", displayText: "UPPER-CASE" },
+        { value: "sentence", displayText: "Sentence-case" },
+        { value: "title", displayText: "Title-Case" },
+      ],
+      currentValue: this.settings.calloutIDCapitalization,
+      onChange: (newValue) => this.setSetting("calloutIDCapitalization", newValue),
+    });
   }
 
   private displayDefaultFoldableStateSetting(): void {
+    createTypedDropdownSetting({
+      containerEl: this.containerEl,
+      settingName: "Foldable callouts",
+      settingDescription:
+        "The default folded state for inserted callouts: unfoldable, expanded, or collapsed. E.g. `> [!quote]` vs `> [!quote]+` vs `> [!quote]-`.",
+      dropdownOptions: [
+        { value: "unfoldable", displayText: "Unfoldable" },
+        { value: "foldable-expanded", displayText: "Foldable, expanded" },
+        { value: "foldable-collapsed", displayText: "Foldable, collapsed" },
+      ],
+      currentValue: this.settings.defaultFoldableState,
+      onChange: (newValue) => this.setSetting("defaultFoldableState", newValue),
+    });
+  }
+
+  private displayAutoSelectionModeSettings(): void {
     new Setting(this.containerEl)
-      .setName("Foldable callouts")
+      .setName("Auto-cursor / auto-selection")
+      .setHeading()
       .setDesc(
-        "The default folded state for inserted callouts: unfoldable, expanded, or collapsed. E.g. `> [!quote]` vs `> [!quote]+` vs `> [!quote]-`."
-      )
-      .addDropdown((dropdown) =>
-        dropdown
-          .addOption("unfoldable", "Unfoldable")
-          .addOption("foldable-expanded", "Foldable, expanded")
-          .addOption("foldable-collapsed", "Foldable, collapsed")
-          .setValue(this.settings.defaultFoldableState)
-          .onChange((value) =>
-            this.setSetting("defaultFoldableState", value as DefaultFoldableState)
-          )
+        "What to select, or where to place the cursor, after running a command. Choosing `Select from header to cursor`, `Select from header to cursor`, and `Keep relative selection` helps to switch callout types quickly. But experiment to see what you prefer!"
       );
-  }
-
-  private displaySelectTextAfterInsertingCalloutSetting(): void {
-    new Setting(this.containerEl)
-      .setName("Select text after inserting callout")
-      .setDesc(
-        "Whether to auto-select text, after inserting a callout with no text selected. " +
-          "Leave disabled if you'd prefer to be able to keep typing content after inserting/wrapping."
-      )
-      .addToggle(this.setupSetSelectionToggle.bind(this));
-  }
-
-  private setupSetSelectionToggle(toggle: ToggleComponent): ToggleComponent {
-    toggle = toggle.setValue(this.settings.shouldSetSelectionAfterCurrentLineWrap);
-    toggle = toggle.onChange(this.setSetting.bind(this, "shouldSetSelectionAfterCurrentLineWrap"));
-    return toggle;
+    createTypedDropdownSetting({
+      containerEl: this.containerEl,
+      settingName: "After inserting/wrapping with nothing selected",
+      settingDescription:
+        "What to select, or where to move the cursor, after wrapping the current line or inserting a fresh callout with no text initially selected.",
+      dropdownOptions: whenNothingSelectedAutoSelectionOptions,
+      currentValue: this.settings.autoSelectionModes.whenNothingSelected,
+      onChange: (newValue) => this.setAutoSelectionMode("whenNothingSelected", newValue),
+    });
+    createTypedDropdownSetting({
+      containerEl: this.containerEl,
+      settingName: "After wrapping a text selection",
+      settingDescription:
+        "What to select, or where to move the cursor, after wrapping selected text in a callout.",
+      dropdownOptions: whenTextSelectedAutoSelectionOptions,
+      currentValue: this.settings.autoSelectionModes.whenTextSelected,
+      onChange: (newValue) => this.setAutoSelectionMode("whenTextSelected", newValue),
+    });
+    createTypedDropdownSetting({
+      containerEl: this.containerEl,
+      settingName: "After removing a callout",
+      settingDescription: "What to select, or where to move the cursor, after removing a callout.",
+      dropdownOptions: afterRemovingCalloutAutoSelectionOptions,
+      currentValue: this.settings.autoSelectionModes.afterRemovingCallout,
+      onChange: (newValue) => this.setAutoSelectionMode("afterRemovingCallout", newValue),
+    });
   }
 
   private async saveSettings(): Promise<void> {

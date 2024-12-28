@@ -1,4 +1,5 @@
-import { PluginSettingsManager } from "../pluginSettingsManager";
+import { type EditorRange } from "obsidian";
+import { type PluginSettingsManager } from "../pluginSettingsManager";
 import { throwNever } from "./errorUtils";
 import { getTrimmedFirstCapturingGroupIfExists } from "./regexUtils";
 import { toSentenceCase } from "./stringUtils";
@@ -7,19 +8,63 @@ export const CALLOUT_HEADER_WITH_ID_CAPTURE_REGEX = /^> \[!(.+)\]/;
 const CALLOUT_TITLE_REGEX = /^> \[!.+\][+-]? (.+)/;
 const HEADING_TITLE_REGEX = /^#+ (.+)/;
 
+export type CalloutHeaderParts = {
+  /** The base part of the header, e.g. `> [!quote]` */
+  baseCalloutHeader: string;
+  /** The foldable suffix: `+`, `-`, or "" */
+  foldableSuffix: string;
+  /** The title part of the header, e.g. `Quote` */
+  maybeTitle: string | null;
+};
+
 export function makeCalloutHeader({
   calloutID,
-  maybeExplicitTitle,
+  maybeTitleFromHeading,
   pluginSettingsManager,
 }: {
   calloutID: string;
-  maybeExplicitTitle: string | null;
+  /** The title parsed from the first selected line if it was a heading, else null */
+  maybeTitleFromHeading: string | null;
   pluginSettingsManager: PluginSettingsManager;
 }): string {
+  const calloutHeaderParts = getNewCalloutHeaderParts({
+    calloutID,
+    maybeTitleFromHeading,
+    pluginSettingsManager,
+  });
+  return constructCalloutHeaderFromParts(calloutHeaderParts);
+}
+
+/**
+ * Returns the parts of the header of a new callout, including the base callout header, foldable
+ * suffix, and title, based on the user's settings. Uses the given title parsed from the first
+ * selected line if that line was a non-empty heading; otherwise, if the user's settings call for an
+ * explicit title, uses the default title for the callout.
+ */
+export function getNewCalloutHeaderParts({
+  calloutID,
+  maybeTitleFromHeading,
+  pluginSettingsManager,
+}: {
+  calloutID: string;
+  /** The title parsed from the first selected line if it was a heading, else null */
+  maybeTitleFromHeading: string | null;
+  pluginSettingsManager: PluginSettingsManager;
+}): CalloutHeaderParts {
   const baseCalloutHeader = makeBaseCalloutHeader(calloutID, pluginSettingsManager);
   const foldableSuffix = makeFoldableSuffix(pluginSettingsManager);
-  const titlePart = maybeExplicitTitle !== null ? ` ${maybeExplicitTitle}` : "";
-  return `${baseCalloutHeader}${foldableSuffix}${titlePart}`;
+  const maybeTitle =
+    maybeTitleFromHeading ?? maybeMakeExplicitTitle(calloutID, pluginSettingsManager);
+  return { baseCalloutHeader, foldableSuffix, maybeTitle };
+}
+
+export function constructCalloutHeaderFromParts({
+  baseCalloutHeader,
+  foldableSuffix,
+  maybeTitle,
+}: CalloutHeaderParts): string {
+  const titleText = maybeTitle !== null ? ` ${maybeTitle}` : "";
+  return `${baseCalloutHeader}${foldableSuffix}${titleText}`;
 }
 
 function makeBaseCalloutHeader(
@@ -81,15 +126,6 @@ export function maybeMakeExplicitTitle(
   return getDefaultCalloutTitle(calloutID);
 }
 
-export function makeNewCalloutHeader(
-  calloutID: string,
-  pluginSettingsManager: PluginSettingsManager
-): string {
-  const shouldUseExplicitTitle = pluginSettingsManager.getSetting("shouldUseExplicitTitle");
-  const maybeExplicitTitle = shouldUseExplicitTitle ? getDefaultCalloutTitle(calloutID) : null;
-  return makeCalloutHeader({ calloutID, maybeExplicitTitle, pluginSettingsManager });
-}
-
 export function makeH6Line(title: string): string {
   return `###### ${title}`;
 }
@@ -135,21 +171,21 @@ function getTrimmedExplicitTitleIfExists(fullCalloutText: string): string | unde
 /**
  * Gets the heading title text (trimmed of surrounding whitespace) from the first line of selected
  * text to be wrapped in a callout, if such a heading text exists. If none is found or the trimmed
- * string is empty, returns undefined.
+ * string is empty, returns null.
  *
  * @param firstSelectedLine The first line of the text to be wrapped in a callout.
- * @returns The trimmed heading text if it exists and is non-empty, otherwise undefined.
+ * @returns The trimmed heading text if it exists and is non-empty, otherwise null.
  */
 export function getCustomHeadingTitleIfExists({
   firstSelectedLine,
 }: {
   firstSelectedLine: string;
-}): string | undefined {
-  const maybeHeadingTitle = getTrimmedHeadingTitleIfExists(firstSelectedLine);
-  if (maybeHeadingTitle === "" || maybeHeadingTitle === undefined) {
-    return undefined;
+}): string | null {
+  const maybeTitleFromHeading = getTrimmedHeadingTitleIfExists(firstSelectedLine);
+  if (maybeTitleFromHeading === "" || maybeTitleFromHeading === undefined) {
+    return null;
   }
-  return maybeHeadingTitle;
+  return maybeTitleFromHeading;
 }
 
 function getTrimmedHeadingTitleIfExists(firstSelectedLine: string): string | undefined {
@@ -166,4 +202,21 @@ export function isCustomTitle({ calloutID, title }: { calloutID: string; title: 
 
 function getDefaultCalloutTitle(calloutID: string): string {
   return toSentenceCase(calloutID).replace(/-/g, " ");
+}
+
+/**
+ * Gets the title's editor range, given the parts of the callout header and the title's line number.
+ */
+export function getTitleRange({
+  calloutHeaderParts,
+  line,
+}: {
+  calloutHeaderParts: CalloutHeaderParts;
+  line: number;
+}): EditorRange {
+  const { baseCalloutHeader, foldableSuffix, maybeTitle } = calloutHeaderParts;
+  const titleLength = maybeTitle?.length ?? 0;
+  const titleStart = baseCalloutHeader.length + foldableSuffix.length;
+  const titleEnd = titleStart + titleLength;
+  return { from: { line, ch: titleStart }, to: { line, ch: titleEnd } };
 }
