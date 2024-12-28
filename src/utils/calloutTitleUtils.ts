@@ -216,7 +216,7 @@ export function getTitleRange({
 }): EditorRange {
   const { baseCalloutHeader, foldableSuffix, maybeTitle } = calloutHeaderParts;
   const titleLength = maybeTitle?.length ?? 0;
-  const titleStart = baseCalloutHeader.length + foldableSuffix.length;
+  const titleStart = baseCalloutHeader.length + foldableSuffix.length + 1;
   const titleEnd = titleStart + titleLength;
   return { from: { line, ch: titleStart }, to: { line, ch: titleEnd } };
 }
