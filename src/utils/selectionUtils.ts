@@ -24,15 +24,13 @@ export type SetCursorAction = {
   newPosition: EditorPosition;
 };
 
-/** For when there's no selection. */
 export type SetSelectionAction = {
   type: "setSelection";
   newRange: EditorRange;
 };
 
-/** For when there's already a selection. Use `setSelectionInCorrectDirection` to run this action. */
-export type ChangeSelectionAction = {
-  type: "changeSelection";
+export type SetSelectionInCorrectDirectionAction = {
+  type: "setSelectionInCorrectDirection";
   newRange: EditorRange;
   originalCursorPositions: CursorPositions;
 };
@@ -45,7 +43,7 @@ export type ClearSelectionAction = {
 export type CursorOrSelectionAction =
   | SetCursorAction
   | SetSelectionAction
-  | ChangeSelectionAction
+  | SetSelectionInCorrectDirectionAction
   | ClearSelectionAction;
 
 /**
@@ -233,7 +231,7 @@ export function runCursorOrSelectionAction({
       editor.setSelection(action.newRange.from, action.newRange.to);
       return;
     }
-    case "changeSelection": {
+    case "setSelectionInCorrectDirection": {
       const { newRange, originalCursorPositions } = action;
       setSelectionInCorrectDirection({ editor, originalCursorPositions, newRange });
       return;

@@ -9,7 +9,6 @@ import {
 import { makeCalloutSelectionCheckCallback } from "../utils/editorCheckCallbackUtils";
 import { throwNever } from "../utils/errorUtils";
 import {
-  type ChangeSelectionAction,
   type ClearSelectionAction,
   type CursorOrSelectionAction,
   type CursorPositions,
@@ -19,6 +18,7 @@ import {
   getSelectedLinesRangeAndText,
   runCursorOrSelectionAction,
   type SelectedLinesDiff,
+  type SetSelectionInCorrectDirectionAction,
 } from "../utils/selectionUtils";
 import { getTextLines } from "../utils/stringUtils";
 
@@ -174,7 +174,7 @@ function getFullTextSelectionAction({
 }: {
   selectedLinesDiff: SelectedLinesDiff;
   originalCursorPositions: CursorPositions;
-}): ChangeSelectionAction {
+}): SetSelectionInCorrectDirectionAction {
   const { from: oldFrom, to: oldTo } = originalCursorPositions;
   const newFrom = { line: oldFrom.line, ch: 0 };
 
@@ -185,7 +185,7 @@ function getFullTextSelectionAction({
   const newTo = { line: newToLine, ch: newLastLine.length };
 
   const newRange = { from: newFrom, to: newTo };
-  return { type: "changeSelection", newRange, originalCursorPositions };
+  return { type: "setSelectionInCorrectDirection", newRange, originalCursorPositions };
 }
 
 function getOriginalSelectionAction({
@@ -196,7 +196,7 @@ function getOriginalSelectionAction({
   selectedLinesDiff: SelectedLinesDiff;
   originalCursorPositions: CursorPositions;
   didRemoveHeaderLine: boolean;
-}): ChangeSelectionAction {
+}): SetSelectionInCorrectDirectionAction {
   const { oldLines, newLines } = selectedLinesDiff;
   const { from: oldFrom, to: oldTo } = originalCursorPositions;
   const newFromCh = didRemoveHeaderLine
@@ -210,7 +210,7 @@ function getOriginalSelectionAction({
   const newTo = getNewToPosition({ oldTo, selectedLinesDiff });
 
   const newRange = { from: newFrom, to: newTo };
-  return { type: "changeSelection", newRange, originalCursorPositions };
+  return { type: "setSelectionInCorrectDirection", newRange, originalCursorPositions };
 }
 
 function getClearSelectionCursorToAction({
