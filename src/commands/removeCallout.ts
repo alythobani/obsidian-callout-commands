@@ -9,14 +9,16 @@ import {
 import { makeCalloutSelectionCheckCallback } from "../utils/editorCheckCallbackUtils";
 import { throwNever } from "../utils/errorUtils";
 import {
-  clearSelectionAndSetCursor,
+  type ClearSelectionAction,
+  type CursorOrSelectionAction,
   type CursorPositions,
   getCursorPositions,
   getNewPositionWithinLine,
   getNewToPosition,
   getSelectedLinesRangeAndText,
+  runCursorOrSelectionAction,
   type SelectedLinesDiff,
-  setSelectionInCorrectDirection,
+  type SetSelectionAction,
 } from "../utils/selectionUtils";
 import { getTextLines } from "../utils/stringUtils";
 
@@ -102,10 +104,6 @@ function getNewLinesAfterRemovingCalloutWithDefaultTitle(
   return unquotedLinesWithoutHeader;
 }
 
-/**
- * Sets the selection or cursor (depending on user setting) after removing the callout from the
- * selected lines.
- */
 function setSelectionAfterRemovingCallout({
   editor,
   selectedLinesDiff,
@@ -117,58 +115,66 @@ function setSelectionAfterRemovingCallout({
   originalCursorPositions: CursorPositions;
   pluginSettingsManager: PluginSettingsManager;
 }): void {
+  const cursorOrSelectionAction = getCursorOrSelectionActionAfterRemovingCallout({
+    selectedLinesDiff,
+    originalCursorPositions,
+    pluginSettingsManager,
+  });
+  runCursorOrSelectionAction({ editor, originalCursorPositions, action: cursorOrSelectionAction });
+}
+
+/**
+ * Sets the selection or cursor (depending on user setting) after removing the callout from the
+ * selected lines.
+ */
+function getCursorOrSelectionActionAfterRemovingCallout({
+  selectedLinesDiff,
+  originalCursorPositions,
+  pluginSettingsManager,
+}: {
+  selectedLinesDiff: SelectedLinesDiff;
+  originalCursorPositions: CursorPositions;
+  pluginSettingsManager: PluginSettingsManager;
+}): CursorOrSelectionAction {
   const { oldLines, newLines } = selectedLinesDiff;
   const didRemoveHeaderLine = oldLines.length !== newLines.length;
   const autoSelectionModes = pluginSettingsManager.getSetting("autoSelectionModes");
   switch (autoSelectionModes.afterRemovingCallout) {
     case "selectFull": {
-      selectFullText({ editor, selectedLinesDiff, originalCursorPositions });
-      return;
+      return getFullTextSelectionAction({ selectedLinesDiff, originalCursorPositions });
     }
     case "originalSelection": {
-      selectOriginalSelection({
-        editor,
+      return getOriginalSelectionAction({
         selectedLinesDiff,
         originalCursorPositions,
         didRemoveHeaderLine,
       });
-      return;
     }
     case "clearSelectionCursorTo": {
-      clearSelectionCursorTo({
-        editor,
-        selectedLinesDiff,
-        originalCursorPositions,
-      });
-      return;
+      return getClearSelectionCursorToAction({ selectedLinesDiff, originalCursorPositions });
     }
     case "clearSelectionCursorStart": {
-      clearSelectionCursorStart({ editor, originalCursorPositions });
-      return;
+      return getClearSelectionCursorStartAction({ originalCursorPositions });
     }
     case "clearSelectionCursorEnd": {
-      clearSelectionCursorEnd({
-        editor,
+      return getClearSelectionCursorEndAction({
         selectedLinesDiff,
         originalCursorPositions,
         didRemoveHeaderLine,
       });
-      return;
     }
     default:
       throwNever(autoSelectionModes.afterRemovingCallout);
   }
 }
 
-function selectFullText({
-  editor,
+function getFullTextSelectionAction({
   selectedLinesDiff,
   originalCursorPositions,
 }: {
-  editor: Editor;
   selectedLinesDiff: SelectedLinesDiff;
   originalCursorPositions: CursorPositions;
-}): void {
+}): SetSelectionAction {
   const { from: oldFrom, to: oldTo } = originalCursorPositions;
   const newFrom = { line: oldFrom.line, ch: 0 };
 
@@ -179,20 +185,18 @@ function selectFullText({
   const newTo = { line: newToLine, ch: newLastLine.length };
 
   const newRange = { from: newFrom, to: newTo };
-  setSelectionInCorrectDirection(editor, originalCursorPositions, newRange);
+  return { type: "selection", newRange };
 }
 
-function selectOriginalSelection({
-  editor,
+function getOriginalSelectionAction({
   selectedLinesDiff,
   originalCursorPositions,
   didRemoveHeaderLine,
 }: {
-  editor: Editor;
   selectedLinesDiff: SelectedLinesDiff;
   originalCursorPositions: CursorPositions;
   didRemoveHeaderLine: boolean;
-}): void {
+}): SetSelectionAction {
   const { oldLines, newLines } = selectedLinesDiff;
   const { from: oldFrom, to: oldTo } = originalCursorPositions;
   const newFromCh = didRemoveHeaderLine
@@ -206,52 +210,46 @@ function selectOriginalSelection({
   const newTo = getNewToPosition({ oldTo, selectedLinesDiff });
 
   const newRange = { from: newFrom, to: newTo };
-  setSelectionInCorrectDirection(editor, originalCursorPositions, newRange);
+  return { type: "selection", newRange };
 }
 
-function clearSelectionCursorTo({
-  editor,
+function getClearSelectionCursorToAction({
   selectedLinesDiff,
   originalCursorPositions,
 }: {
-  editor: Editor;
   selectedLinesDiff: SelectedLinesDiff;
   originalCursorPositions: CursorPositions;
-}): void {
+}): ClearSelectionAction {
   const { to: oldTo } = originalCursorPositions;
   const newTo = getNewToPosition({ oldTo, selectedLinesDiff });
-  clearSelectionAndSetCursor({ editor, newCursor: newTo });
+  return { type: "clearSelection", newCursor: newTo };
 }
 
-function clearSelectionCursorStart({
-  editor,
+function getClearSelectionCursorStartAction({
   originalCursorPositions,
 }: {
-  editor: Editor;
   originalCursorPositions: CursorPositions;
-}): void {
+}): ClearSelectionAction {
   const startPos = { line: originalCursorPositions.from.line, ch: 0 };
-  clearSelectionAndSetCursor({ editor, newCursor: startPos });
+  return { type: "clearSelection", newCursor: startPos };
 }
 
 /**
  * Clears the selection and moves the cursor to the end of the callout after wrapping the selected
  * lines in a callout.
  */
-function clearSelectionCursorEnd({
-  editor,
+function getClearSelectionCursorEndAction({
   selectedLinesDiff,
   originalCursorPositions,
   didRemoveHeaderLine,
 }: {
-  editor: Editor;
   selectedLinesDiff: SelectedLinesDiff;
   originalCursorPositions: CursorPositions;
   didRemoveHeaderLine: boolean;
-}): void {
+}): ClearSelectionAction {
   const { to: oldTo } = originalCursorPositions;
   const endLine = didRemoveHeaderLine ? oldTo.line - 1 : oldTo.line;
   const endCh = getLastElement(selectedLinesDiff.newLines).length;
   const endPos = { line: endLine, ch: endCh };
-  clearSelectionAndSetCursor({ editor, newCursor: endPos });
+  return { type: "clearSelection", newCursor: endPos };
 }

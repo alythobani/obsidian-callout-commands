@@ -1,5 +1,6 @@
 import { type Editor, type EditorPosition, type EditorRange } from "obsidian";
 import { getLastElement, type NonEmptyStringArray } from "./arrayUtils";
+import { throwNever } from "./errorUtils";
 
 export type CursorPositions = {
   anchor: EditorPosition;
@@ -17,6 +18,23 @@ export type LineDiff = {
   oldLine: string;
   newLine: string;
 };
+
+export type SetCursorAction = {
+  type: "cursor";
+  newPosition: EditorPosition;
+};
+
+export type SetSelectionAction = {
+  type: "selection";
+  newRange: EditorRange;
+};
+
+export type ClearSelectionAction = {
+  type: "clearSelection";
+  newCursor: EditorPosition;
+};
+
+export type CursorOrSelectionAction = SetCursorAction | SetSelectionAction | ClearSelectionAction;
 
 /**
  * Replaces the selected lines with the new lines, and adjusts the editor selection to maintain its
@@ -39,7 +57,7 @@ export function replaceLinesAndAdjustSelection({
   });
   const newText = selectedLinesDiff.newLines.join("\n");
   editor.replaceRange(newText, selectedLinesRange.from, selectedLinesRange.to);
-  setSelectionInCorrectDirection(editor, originalCursorPositions, newSelectionRange);
+  setSelectionInCorrectDirection({ editor, originalCursorPositions, newRange: newSelectionRange });
 }
 
 function getNewSelectionRangeAfterReplacingLines({
@@ -121,11 +139,15 @@ export function getNewPositionWithinLine({
   return newCh;
 }
 
-export function setSelectionInCorrectDirection(
-  editor: Editor,
-  originalCursorPositions: CursorPositions,
-  newRange: EditorRange
-): void {
+export function setSelectionInCorrectDirection({
+  editor,
+  originalCursorPositions,
+  newRange,
+}: {
+  editor: Editor;
+  originalCursorPositions: CursorPositions;
+  newRange: EditorRange;
+}): void {
   const { newAnchor, newHead } = getNewAnchorAndHead(originalCursorPositions, newRange);
   editor.setSelection(newAnchor, newHead);
 }
@@ -181,6 +203,34 @@ function getSelectionRange(editor: Editor): EditorRange {
   const from = editor.getCursor("from");
   const to = editor.getCursor("to");
   return { from, to };
+}
+
+export function runCursorOrSelectionAction({
+  editor,
+  action,
+  originalCursorPositions,
+}: {
+  editor: Editor;
+  action: CursorOrSelectionAction;
+  originalCursorPositions: CursorPositions;
+}): void {
+  switch (action.type) {
+    case "cursor": {
+      editor.setCursor(action.newPosition);
+      break;
+    }
+    case "selection": {
+      const { newRange } = action;
+      setSelectionInCorrectDirection({ editor, originalCursorPositions, newRange });
+      break;
+    }
+    case "clearSelection": {
+      clearSelectionAndSetCursor({ editor, newCursor: action.newCursor });
+      break;
+    }
+    default:
+      throwNever(action);
+  }
 }
 
 /**

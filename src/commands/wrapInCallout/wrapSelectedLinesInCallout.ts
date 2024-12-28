@@ -174,7 +174,7 @@ function selectHeaderToCursor({
   const newTo = { line: newToLine, ch: newToCh };
 
   const newRange = { from: newFrom, to: newTo };
-  setSelectionInCorrectDirection(editor, originalCursorPositions, newRange);
+  setSelectionInCorrectDirection({ editor, originalCursorPositions, newRange });
 }
 
 /**
@@ -200,7 +200,7 @@ function selectOriginalSelection({
   const newTo = getNewToPosition({ oldTo, selectedLinesDiff });
 
   const newRange = { from: newFrom, to: newTo };
-  setSelectionInCorrectDirection(editor, originalCursorPositions, newRange);
+  setSelectionInCorrectDirection({ editor, originalCursorPositions, newRange });
 }
 
 /**
@@ -245,7 +245,7 @@ function selectFull({
   const startPos = getCalloutStartPos({ originalCursorPositions });
   const endPos = getCalloutEndPos({ selectedLinesDiff, originalCursorPositions, didAddHeaderLine });
   const newRange = { from: startPos, to: endPos };
-  setSelectionInCorrectDirection(editor, originalCursorPositions, newRange);
+  setSelectionInCorrectDirection({ editor, originalCursorPositions, newRange });
 }
 
 /**
