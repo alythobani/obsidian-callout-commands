@@ -1,6 +1,7 @@
 import { type Editor, type EditorPosition } from "obsidian";
 import { type CalloutID } from "obsidian-callout-manager";
 import { type PluginSettingsManager } from "../../pluginSettingsManager";
+import { type AutoSelectionWhenNothingSelectedMode } from "../../settings/autoSelectionModes";
 import {
   type CalloutHeaderParts,
   constructCalloutHeaderFromParts,
@@ -9,9 +10,9 @@ import {
 } from "../../utils/calloutTitleUtils";
 import { throwNever } from "../../utils/errorUtils";
 import {
-  type ClearSelectionAction,
   type CursorOrSelectionAction,
   runCursorOrSelectionAction,
+  type SetCursorAction,
   type SetSelectionAction,
 } from "../../utils/selectionUtils";
 
@@ -76,28 +77,28 @@ function setSelectionOrCursorAfterWrappingCurrentLine({
   pluginSettingsManager: PluginSettingsManager;
   calloutHeaderParts: CalloutHeaderParts;
 }): void {
+  const { whenNothingSelected } = pluginSettingsManager.getSetting("autoSelectionModes");
   const cursorOrSelectionAction = getCursorOrSelectionActionAfterWrappingCurrentLine({
     oldCursor,
     oldLineText,
-    pluginSettingsManager,
+    whenNothingSelected,
     calloutHeaderParts,
   });
   runCursorOrSelectionAction({ editor, action: cursorOrSelectionAction });
 }
 
-function getCursorOrSelectionActionAfterWrappingCurrentLine({
+export function getCursorOrSelectionActionAfterWrappingCurrentLine({
   oldCursor,
   oldLineText,
-  pluginSettingsManager,
+  whenNothingSelected,
   calloutHeaderParts,
 }: {
   oldCursor: EditorPosition;
   oldLineText: string;
-  pluginSettingsManager: PluginSettingsManager;
+  whenNothingSelected: AutoSelectionWhenNothingSelectedMode;
   calloutHeaderParts: CalloutHeaderParts;
 }): CursorOrSelectionAction {
-  const autoSelectionModes = pluginSettingsManager.getSetting("autoSelectionModes");
-  switch (autoSelectionModes.whenNothingSelected) {
+  switch (whenNothingSelected) {
     case "selectHeaderToCursor": {
       return getSelectHeaderToCursorAction({ oldCursor, oldLineText });
     }
@@ -114,7 +115,7 @@ function getCursorOrSelectionActionAfterWrappingCurrentLine({
       return getCursorToEndOfLineAction({ oldCursor, oldLineText });
     }
     default:
-      throwNever(autoSelectionModes.whenNothingSelected);
+      throwNever(whenNothingSelected);
   }
 }
 
@@ -165,9 +166,9 @@ function getCursorToOriginalRelativePositionAction({
   oldCursor,
 }: {
   oldCursor: EditorPosition;
-}): ClearSelectionAction {
+}): SetCursorAction {
   const { line, ch } = oldCursor;
-  return { type: "clearSelection", newCursor: { line: line + 1, ch: ch + 2 } };
+  return { type: "setCursor", newPosition: { line: line + 1, ch: ch + 2 } };
 }
 
 function getCursorToEndOfLineAction({
@@ -176,7 +177,9 @@ function getCursorToEndOfLineAction({
 }: {
   oldCursor: EditorPosition;
   oldLineText: string;
-}): ClearSelectionAction {
-  const { line } = oldCursor;
-  return { type: "clearSelection", newCursor: { line, ch: oldLineText.length + 2 } };
+}): SetCursorAction {
+  return {
+    type: "setCursor",
+    newPosition: { line: oldCursor.line + 1, ch: oldLineText.length + 2 },
+  };
 }
