@@ -9,6 +9,7 @@ import {
 import { makeCalloutSelectionCheckCallback } from "../utils/editorCheckCallbackUtils";
 import { throwNever } from "../utils/errorUtils";
 import {
+  type ChangeSelectionAction,
   type ClearSelectionAction,
   type CursorOrSelectionAction,
   type CursorPositions,
@@ -18,7 +19,6 @@ import {
   getSelectedLinesRangeAndText,
   runCursorOrSelectionAction,
   type SelectedLinesDiff,
-  type SetSelectionAction,
 } from "../utils/selectionUtils";
 import { getTextLines } from "../utils/stringUtils";
 
@@ -120,7 +120,7 @@ function setSelectionAfterRemovingCallout({
     originalCursorPositions,
     pluginSettingsManager,
   });
-  runCursorOrSelectionAction({ editor, originalCursorPositions, action: cursorOrSelectionAction });
+  runCursorOrSelectionAction({ editor, action: cursorOrSelectionAction });
 }
 
 /**
@@ -174,7 +174,7 @@ function getFullTextSelectionAction({
 }: {
   selectedLinesDiff: SelectedLinesDiff;
   originalCursorPositions: CursorPositions;
-}): SetSelectionAction {
+}): ChangeSelectionAction {
   const { from: oldFrom, to: oldTo } = originalCursorPositions;
   const newFrom = { line: oldFrom.line, ch: 0 };
 
@@ -185,7 +185,7 @@ function getFullTextSelectionAction({
   const newTo = { line: newToLine, ch: newLastLine.length };
 
   const newRange = { from: newFrom, to: newTo };
-  return { type: "selection", newRange };
+  return { type: "changeSelection", newRange, originalCursorPositions };
 }
 
 function getOriginalSelectionAction({
@@ -196,7 +196,7 @@ function getOriginalSelectionAction({
   selectedLinesDiff: SelectedLinesDiff;
   originalCursorPositions: CursorPositions;
   didRemoveHeaderLine: boolean;
-}): SetSelectionAction {
+}): ChangeSelectionAction {
   const { oldLines, newLines } = selectedLinesDiff;
   const { from: oldFrom, to: oldTo } = originalCursorPositions;
   const newFromCh = didRemoveHeaderLine
@@ -210,7 +210,7 @@ function getOriginalSelectionAction({
   const newTo = getNewToPosition({ oldTo, selectedLinesDiff });
 
   const newRange = { from: newFrom, to: newTo };
-  return { type: "selection", newRange };
+  return { type: "changeSelection", newRange, originalCursorPositions };
 }
 
 function getClearSelectionCursorToAction({

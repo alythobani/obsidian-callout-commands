@@ -8,6 +8,12 @@ import {
   getTitleRange,
 } from "../../utils/calloutTitleUtils";
 import { throwNever } from "../../utils/errorUtils";
+import {
+  type ClearSelectionAction,
+  type CursorOrSelectionAction,
+  runCursorOrSelectionAction,
+  type SetSelectionAction,
+} from "../../utils/selectionUtils";
 
 /**
  * Wraps the cursor's current line in a callout.
@@ -70,27 +76,42 @@ function setSelectionOrCursorAfterWrappingCurrentLine({
   pluginSettingsManager: PluginSettingsManager;
   calloutHeaderParts: CalloutHeaderParts;
 }): void {
+  const cursorOrSelectionAction = getCursorOrSelectionActionAfterWrappingCurrentLine({
+    oldCursor,
+    oldLineText,
+    pluginSettingsManager,
+    calloutHeaderParts,
+  });
+  runCursorOrSelectionAction({ editor, action: cursorOrSelectionAction });
+}
+
+function getCursorOrSelectionActionAfterWrappingCurrentLine({
+  oldCursor,
+  oldLineText,
+  pluginSettingsManager,
+  calloutHeaderParts,
+}: {
+  oldCursor: EditorPosition;
+  oldLineText: string;
+  pluginSettingsManager: PluginSettingsManager;
+  calloutHeaderParts: CalloutHeaderParts;
+}): CursorOrSelectionAction {
   const autoSelectionModes = pluginSettingsManager.getSetting("autoSelectionModes");
   switch (autoSelectionModes.whenNothingSelected) {
     case "selectHeaderToCursor": {
-      selectHeaderToCursor({ editor, oldCursor, oldLineText });
-      return;
+      return getSelectHeaderToCursorAction({ oldCursor, oldLineText });
     }
     case "selectFull": {
-      selectFullCallout({ editor, oldCursor, oldLineText });
-      return;
+      return getSelectFullCalloutAction({ oldCursor, oldLineText });
     }
     case "selectTitle": {
-      selectTitle({ editor, oldCursor, calloutHeaderParts });
-      return;
+      return getSelectTitleAction({ oldCursor, calloutHeaderParts });
     }
     case "originalCursor": {
-      setCursorToOriginalRelativePosition({ editor, oldCursor });
-      break;
+      return getCursorToOriginalRelativePositionAction({ oldCursor });
     }
     case "cursorEnd": {
-      setCursorToEndOfLine({ editor, oldCursor, oldLineText });
-      break;
+      return getCursorToEndOfLineAction({ oldCursor, oldLineText });
     }
     default:
       throwNever(autoSelectionModes.whenNothingSelected);
@@ -100,82 +121,62 @@ function setSelectionOrCursorAfterWrappingCurrentLine({
 /**
  * Selects the full callout after wrapping the current line in a callout.
  */
-function selectFullCallout({
-  editor,
+function getSelectFullCalloutAction({
   oldCursor,
   oldLineText,
 }: {
-  editor: Editor;
   oldCursor: EditorPosition;
   oldLineText: string;
-}): void {
+}): SetSelectionAction {
   const newFrom = { line: oldCursor.line, ch: 0 };
   const newTo = { line: oldCursor.line + 1, ch: oldLineText.length + 2 };
-  editor.setSelection(newFrom, newTo);
+  return { type: "setSelection", newRange: { from: newFrom, to: newTo } };
 }
 
 /**
  * Selects from the start of the callout header to the cursor's original relative position within
  * the text.
  */
-function selectHeaderToCursor({
-  editor,
+function getSelectHeaderToCursorAction({
   oldCursor,
   oldLineText,
 }: {
-  editor: Editor;
   oldCursor: EditorPosition;
   oldLineText: string;
-}): void {
+}): SetSelectionAction {
   const newFrom = { line: oldCursor.line, ch: 0 };
   const newToCh = Math.min(oldCursor.ch + 3, oldLineText.length + 2);
   const newTo = { line: oldCursor.line + 1, ch: newToCh };
-  editor.setSelection(newFrom, newTo);
+  return { type: "setSelection", newRange: { from: newFrom, to: newTo } };
 }
 
-function selectTitle({
-  editor,
+function getSelectTitleAction({
   oldCursor,
   calloutHeaderParts,
 }: {
-  editor: Editor;
   oldCursor: EditorPosition;
   calloutHeaderParts: CalloutHeaderParts;
-}): void {
+}): SetSelectionAction {
   const titleRange = getTitleRange({ calloutHeaderParts, line: oldCursor.line });
-  editor.setSelection(titleRange.from, titleRange.to);
+  return { type: "setSelection", newRange: titleRange };
 }
 
-/**
- * Moves the cursor one line down (for the added callout header) and two characters to the right
- * (for the prepended `> `).
- *
- * @param editor The editor to move the cursor in.
- * @param originalCursor The cursor position before the callout was added.
- */
-function setCursorToOriginalRelativePosition({
-  editor,
+function getCursorToOriginalRelativePositionAction({
   oldCursor,
 }: {
-  editor: Editor;
   oldCursor: EditorPosition;
-}): void {
+}): ClearSelectionAction {
   const { line, ch } = oldCursor;
-  editor.setCursor({ line: line + 1, ch: ch + 2 });
+  return { type: "clearSelection", newCursor: { line: line + 1, ch: ch + 2 } };
 }
 
-/**
- * Moves the cursor to the end of the line after wrapping the current line in a callout.
- */
-function setCursorToEndOfLine({
-  editor,
+function getCursorToEndOfLineAction({
   oldCursor,
   oldLineText,
 }: {
-  editor: Editor;
   oldCursor: EditorPosition;
   oldLineText: string;
-}): void {
+}): ClearSelectionAction {
   const { line } = oldCursor;
-  editor.setCursor({ line, ch: oldLineText.length + 2 });
+  return { type: "clearSelection", newCursor: { line, ch: oldLineText.length + 2 } };
 }

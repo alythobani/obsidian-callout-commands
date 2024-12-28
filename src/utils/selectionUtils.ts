@@ -20,13 +20,21 @@ export type LineDiff = {
 };
 
 export type SetCursorAction = {
-  type: "cursor";
+  type: "setCursor";
   newPosition: EditorPosition;
 };
 
+/** For when there's no selection. */
 export type SetSelectionAction = {
-  type: "selection";
+  type: "setSelection";
   newRange: EditorRange;
+};
+
+/** For when there's already a selection. Use `setSelectionInCorrectDirection` to run this action. */
+export type ChangeSelectionAction = {
+  type: "changeSelection";
+  newRange: EditorRange;
+  originalCursorPositions: CursorPositions;
 };
 
 export type ClearSelectionAction = {
@@ -34,7 +42,11 @@ export type ClearSelectionAction = {
   newCursor: EditorPosition;
 };
 
-export type CursorOrSelectionAction = SetCursorAction | SetSelectionAction | ClearSelectionAction;
+export type CursorOrSelectionAction =
+  | SetCursorAction
+  | SetSelectionAction
+  | ChangeSelectionAction
+  | ClearSelectionAction;
 
 /**
  * Replaces the selected lines with the new lines, and adjusts the editor selection to maintain its
@@ -208,25 +220,27 @@ function getSelectionRange(editor: Editor): EditorRange {
 export function runCursorOrSelectionAction({
   editor,
   action,
-  originalCursorPositions,
 }: {
   editor: Editor;
   action: CursorOrSelectionAction;
-  originalCursorPositions: CursorPositions;
 }): void {
   switch (action.type) {
-    case "cursor": {
+    case "setCursor": {
       editor.setCursor(action.newPosition);
-      break;
+      return;
     }
-    case "selection": {
-      const { newRange } = action;
+    case "setSelection": {
+      editor.setSelection(action.newRange.from, action.newRange.to);
+      return;
+    }
+    case "changeSelection": {
+      const { newRange, originalCursorPositions } = action;
       setSelectionInCorrectDirection({ editor, originalCursorPositions, newRange });
-      break;
+      return;
     }
     case "clearSelection": {
       clearSelectionAndSetCursor({ editor, newCursor: action.newCursor });
-      break;
+      return;
     }
     default:
       throwNever(action);
