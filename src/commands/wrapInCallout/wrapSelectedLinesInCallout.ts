@@ -17,6 +17,7 @@ import {
   type CursorPositions,
   getCursorPositions,
   getLastLineDiff,
+  getNewFromPosition,
   getNewPositionWithinLine,
   getNewToPosition,
   getSelectedLinesRangeAndText,
@@ -175,7 +176,7 @@ function getSelectHeaderToCursorAction({
   didAddHeaderLine: boolean;
 }): SetSelectionInCorrectDirectionAction {
   const { from: oldFrom, to: oldTo } = originalCursorPositions;
-  const newFrom = { line: oldFrom.line, ch: 0 };
+  const newFrom = getNewFromPosition({ oldFrom, selectedLinesDiff });
 
   const newToLine = didAddHeaderLine ? oldTo.line + 1 : oldTo.line;
   const lastLineDiff = getLastLineDiff(selectedLinesDiff);

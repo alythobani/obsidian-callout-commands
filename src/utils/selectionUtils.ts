@@ -88,7 +88,7 @@ function getNewSelectionRangeAfterReplacingLines({
  * Gets the new cursor `from` position after the selected lines have been altered, while keeping the
  * relative `from` position within the text the same.
  */
-function getNewFromPosition({
+export function getNewFromPosition({
   oldFrom,
   selectedLinesDiff,
 }: {

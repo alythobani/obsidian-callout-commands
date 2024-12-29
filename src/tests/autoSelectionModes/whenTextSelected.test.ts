@@ -127,21 +127,25 @@ const testParams2: TestParams = {
 
 describe("whenTextSelected", () => {
   describe("selectHeaderToCursor", () => {
-    const testHeaderToCursor: AutoSelectionModeTestFn = (testParams) =>
+    const testHeaderToCursor = (testParams: TestParams, getExpected: GetExpected): void =>
       testWhenTextSelected({
         whenTextSelected: "selectHeaderToCursor",
         testParams,
-        getExpected: ({ after, originalCursorPositions }) => ({
-          type: "setSelectionInCorrectDirection",
-          newRange: { from: after.start, to: after.to },
-          originalCursorPositions,
-        }),
+        getExpected,
       });
-    it("should select from the start of the header to the cursor (inclusive)", () => {
-      testHeaderToCursor(testParams1);
+    it("header line added", () => {
+      testHeaderToCursor(testParams1, ({ after, originalCursorPositions }) => ({
+        type: "setSelectionInCorrectDirection",
+        newRange: { from: after.start, to: after.to },
+        originalCursorPositions,
+      }));
     });
     test("with custom title", () => {
-      testHeaderToCursor(testParams2);
+      testHeaderToCursor(testParams2, ({ after, originalCursorPositions }) => ({
+        type: "setSelectionInCorrectDirection",
+        newRange: { from: after.from, to: after.to },
+        originalCursorPositions,
+      }));
     });
   });
 
