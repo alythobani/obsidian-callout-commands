@@ -1,9 +1,9 @@
 import { Setting } from "obsidian";
 
-export interface TypedDropdownOption<ValidOption> {
+export type TypedDropdownOption<ValidOption> = {
   value: ValidOption;
   displayText: string;
-}
+};
 
 /**
  * More precisely-typed Obsidian API helper function for creating a dropdown setting. Typing helps

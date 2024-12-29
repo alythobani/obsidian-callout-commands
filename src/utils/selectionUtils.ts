@@ -1,6 +1,7 @@
 import { type Editor, type EditorPosition, type EditorRange } from "obsidian";
 import { getLastElement, type NonEmptyStringArray } from "./arrayUtils";
 import { throwNever } from "./errorUtils";
+import { clamp } from "./numberUtils";
 
 export type CursorPositions = {
   anchor: EditorPosition;
@@ -145,7 +146,7 @@ export function getNewPositionWithinLine({
 }): number {
   const { oldLine, newLine } = lineDiff;
   const lineLengthDiff = oldLine.length - newLine.length;
-  const newCh = Math.clamp(oldCh - lineLengthDiff, 0, newLine.length);
+  const newCh = clamp({ value: oldCh - lineLengthDiff, min: 0, max: newLine.length });
   return newCh;
 }
 

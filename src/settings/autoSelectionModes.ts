@@ -2,20 +2,20 @@ import { type TypedDropdownOption } from "./typedSettingsHelpers";
 
 export const whenNothingSelectedAutoSelectionOptions: readonly TypedDropdownOption<AutoSelectionWhenNothingSelectedMode>[] =
   [
-    { value: "selectHeaderToCursor", displayText: "Select from header to cursor" },
+    { value: "selectHeaderToCursor", displayText: "Select up to header" },
     { value: "selectFull", displayText: "Select full callout" },
     { value: "selectTitle", displayText: "Select callout title" },
     { value: "originalCursor", displayText: "Keep relative cursor position" },
-    { value: "cursorEnd", displayText: "Move cursor to end" },
+    { value: "cursorEnd", displayText: "Cursor at end" },
   ];
 
 export const whenTextSelectedAutoSelectionOptions: readonly TypedDropdownOption<AutoSelectionWhenTextSelectedMode>[] =
   [
-    { value: "selectHeaderToCursor", displayText: "Select from header to cursor" },
+    { value: "selectHeaderToCursor", displayText: "Select up to header" },
     { value: "selectFull", displayText: "Select full callout" },
     { value: "selectTitle", displayText: "Select callout title" },
     { value: "originalSelection", displayText: "Keep relative selection" },
-    { value: "clearSelectionCursorEnd", displayText: "Clear selection, move cursor to end" },
+    { value: "clearSelectionCursorEnd", displayText: "Clear selection, cursor at end" },
   ];
 
 export const afterRemovingCalloutAutoSelectionOptions: readonly TypedDropdownOption<AutoSelectionAfterRemovingCalloutModes>[] =
@@ -23,8 +23,8 @@ export const afterRemovingCalloutAutoSelectionOptions: readonly TypedDropdownOpt
     { value: "originalSelection", displayText: "Keep relative selection" },
     { value: "selectFull", displayText: "Select full remaining lines" },
     { value: "clearSelectionCursorTo", displayText: "Clear selection" },
-    { value: "clearSelectionCursorStart", displayText: "Clear selection, move cursor to start" },
-    { value: "clearSelectionCursorEnd", displayText: "Clear selection, move cursor to end" },
+    { value: "clearSelectionCursorStart", displayText: "Clear selection, cursor at start" },
+    { value: "clearSelectionCursorEnd", displayText: "Clear selection, cursor at end" },
   ];
 
 export type AutoSelectionWhenNothingSelectedMode =

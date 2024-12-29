@@ -140,15 +140,15 @@ function getCursorOrSelectionActionAfterRemovingCallout({
   const didRemoveHeaderLine = oldLines.length !== newLines.length;
   const autoSelectionModes = pluginSettingsManager.getSetting("autoSelectionModes");
   switch (autoSelectionModes.afterRemovingCallout) {
-    case "selectFull": {
-      return getFullTextSelectionAction({ selectedLinesDiff, originalCursorPositions });
-    }
     case "originalSelection": {
       return getOriginalSelectionAction({
         selectedLinesDiff,
         originalCursorPositions,
         didRemoveHeaderLine,
       });
+    }
+    case "selectFull": {
+      return getFullTextSelectionAction({ selectedLinesDiff, originalCursorPositions });
     }
     case "clearSelectionCursorTo": {
       return getClearSelectionCursorToAction({ selectedLinesDiff, originalCursorPositions });

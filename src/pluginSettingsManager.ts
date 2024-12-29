@@ -173,16 +173,16 @@ export class PluginSettingsManager extends PluginSettingTab {
 
   private displayAutoSelectionModeSettings(): void {
     new Setting(this.containerEl)
-      .setName("Auto-cursor / auto-selection")
+      .setName("Auto-selection / auto-cursor")
       .setHeading()
       .setDesc(
-        "What to select, or where to place the cursor, after running a command. Choosing `Select from header to cursor`, `Select from header to cursor`, and `Keep relative selection` helps to switch callout types quickly. But experiment to see what you prefer!"
+        "What to select, or where to place the cursor, after running a command. Selecting the header can help with switching callout types quickly. But the other modes have their own merits as well. Experiment around to see what you prefer!"
       );
     createTypedDropdownSetting({
       containerEl: this.containerEl,
       settingName: "After inserting/wrapping with nothing selected",
       settingDescription:
-        "What to select, or where to move the cursor, after wrapping the current line or inserting a fresh callout with no text initially selected.",
+        "What to select, or where to move the cursor, after inserting a fresh callout or wrapping the current line without any text selected.",
       dropdownOptions: whenNothingSelectedAutoSelectionOptions,
       currentValue: this.settings.autoSelectionModes.whenNothingSelected,
       onChange: (newValue) => this.setAutoSelectionMode("whenNothingSelected", newValue),

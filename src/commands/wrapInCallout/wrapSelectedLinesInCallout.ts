@@ -1,6 +1,7 @@
 import { type Editor, type EditorPosition } from "obsidian";
 import { type CalloutID } from "obsidian-callout-manager";
 import { type PluginSettingsManager } from "../../pluginSettingsManager";
+import { type AutoSelectionWhenTextSelectedMode } from "../../settings/autoSelectionModes";
 import { getLastElement, type NonEmptyStringArray } from "../../utils/arrayUtils";
 import {
   type CalloutHeaderParts,
@@ -105,39 +106,32 @@ function setSelectionOrCursorAfterWrappingSelectedLines({
   pluginSettingsManager: PluginSettingsManager;
   calloutHeaderParts: CalloutHeaderParts;
 }): void {
+  const { whenTextSelected } = pluginSettingsManager.getSetting("autoSelectionModes");
   const cursorOrSelectionAction = getCursorOrSelectionActionAfterWrappingSelectedLines({
+    whenTextSelected,
     selectedLinesDiff,
     originalCursorPositions,
-    pluginSettingsManager,
     calloutHeaderParts,
   });
   runCursorOrSelectionAction({ editor, action: cursorOrSelectionAction });
 }
 
-function getCursorOrSelectionActionAfterWrappingSelectedLines({
+export function getCursorOrSelectionActionAfterWrappingSelectedLines({
+  whenTextSelected,
   selectedLinesDiff,
   originalCursorPositions,
-  pluginSettingsManager,
   calloutHeaderParts,
 }: {
+  whenTextSelected: AutoSelectionWhenTextSelectedMode;
   selectedLinesDiff: SelectedLinesDiff;
   originalCursorPositions: CursorPositions;
-  pluginSettingsManager: PluginSettingsManager;
   calloutHeaderParts: CalloutHeaderParts;
 }): CursorOrSelectionAction {
   const { oldLines, newLines } = selectedLinesDiff;
   const didAddHeaderLine = oldLines.length !== newLines.length;
-  const autoSelectionModes = pluginSettingsManager.getSetting("autoSelectionModes");
-  switch (autoSelectionModes.whenTextSelected) {
+  switch (whenTextSelected) {
     case "selectHeaderToCursor": {
       return getSelectHeaderToCursorAction({
-        selectedLinesDiff,
-        originalCursorPositions,
-        didAddHeaderLine,
-      });
-    }
-    case "originalSelection": {
-      return selectOriginalSelection({
         selectedLinesDiff,
         originalCursorPositions,
         didAddHeaderLine,
@@ -149,6 +143,13 @@ function getCursorOrSelectionActionAfterWrappingSelectedLines({
     case "selectTitle": {
       return getSelectTitleAction({ originalCursorPositions, calloutHeaderParts });
     }
+    case "originalSelection": {
+      return selectOriginalSelection({
+        selectedLinesDiff,
+        originalCursorPositions,
+        didAddHeaderLine,
+      });
+    }
     case "clearSelectionCursorEnd": {
       return getClearSelectionCursorEndAction({
         selectedLinesDiff,
@@ -157,7 +158,7 @@ function getCursorOrSelectionActionAfterWrappingSelectedLines({
       });
     }
     default:
-      throwNever(autoSelectionModes.whenTextSelected);
+      throwNever(whenTextSelected);
   }
 }
 
