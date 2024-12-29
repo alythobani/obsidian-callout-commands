@@ -9,13 +9,16 @@ export default tseslint.config(
   ...tseslint.configs.stylisticTypeChecked,
   {
     files: ["**/*.ts"],
+    ignores: ["vitest.config.ts"],
     languageOptions: {
       parserOptions: {
-        project: true,
+        projectService: true,
         tsconfigRootDir: import.meta.dirname,
       },
     },
     rules: {
+      "@typescript-eslint/consistent-type-imports": ["error", { fixStyle: "inline-type-imports" }],
+      "@typescript-eslint/consistent-type-definitions": ["error", "type"],
       "@typescript-eslint/explicit-function-return-type": "error",
       "@typescript-eslint/restrict-template-expressions": [
         "error",
@@ -36,7 +39,13 @@ export default tseslint.config(
           varsIgnorePattern: "^_",
         },
       ],
-      "@typescript-eslint/strict-boolean-expressions": "error",
+      "@typescript-eslint/strict-boolean-expressions": [
+        "error",
+        {
+          allowString: false,
+          allowNumber: false,
+        },
+      ],
       "object-shorthand": "error",
     },
   }

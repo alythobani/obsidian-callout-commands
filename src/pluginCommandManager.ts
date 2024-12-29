@@ -1,15 +1,15 @@
-import { Command, Plugin } from "obsidian";
-import { CalloutID } from "obsidian-callout-manager";
+import { type Command, type Plugin } from "obsidian";
+import { type CalloutID } from "obsidian-callout-manager";
 import { BUILTIN_CALLOUT_IDS } from "./callouts/builtinCallouts";
 import {
-  CalloutManagerOwnedHandle,
+  type CalloutManagerOwnedHandle,
   getCalloutIDsFromCalloutManager,
   getCalloutManagerAPIHandleIfInstalled,
 } from "./callouts/calloutManager";
 import { getFullWrapLinesInCalloutCommandID } from "./commands/commandIDs";
-import { REMOVE_CALLOUT_FROM_SELECTED_LINES_COMMAND } from "./commands/removeCallout";
+import { makeRemoveCalloutFromSelectedLinesCommand } from "./commands/removeCallout";
 import { makeWrapLinesInCalloutCommand } from "./commands/wrapInCallout/wrapLinesInCallout";
-import { PluginSettingsManager } from "./pluginSettingsManager";
+import { type PluginSettingsManager } from "./pluginSettingsManager";
 import { filterOutElements } from "./utils/arrayUtils";
 
 export class PluginCommandManager {
@@ -78,7 +78,7 @@ export class PluginCommandManager {
 
   private addAllCommands(): void {
     this.addAllWrapLinesInCalloutCommands();
-    this.addCommand(REMOVE_CALLOUT_FROM_SELECTED_LINES_COMMAND);
+    this.addRemoveCalloutFromSelectedLinesCommand();
   }
 
   private addAllWrapLinesInCalloutCommands(): void {
@@ -97,6 +97,13 @@ export class PluginCommandManager {
 
   private addCommand(command: Command): void {
     this.plugin.addCommand(command);
+  }
+
+  private addRemoveCalloutFromSelectedLinesCommand(): void {
+    const removeCalloutFromSelectedLinesCommand = makeRemoveCalloutFromSelectedLinesCommand(
+      this.pluginSettingsManager
+    );
+    this.addCommand(removeCalloutFromSelectedLinesCommand);
   }
 
   private removeCommand({ fullCommandID }: { fullCommandID: string }): void {

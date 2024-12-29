@@ -2,9 +2,12 @@ node_modules/
 
 data.json
 
+data-json-snapshots
+
 .DS_Store
 
 main.js
 
 .aider*
 
+.env

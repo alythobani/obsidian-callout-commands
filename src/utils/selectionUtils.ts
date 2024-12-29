@@ -1,22 +1,51 @@
-import { Editor, EditorPosition, EditorRange } from "obsidian";
-import { getLastElement, NonEmptyStringArray } from "./arrayUtils";
+import { type Editor, type EditorPosition, type EditorRange } from "obsidian";
+import { getLastElement, type NonEmptyStringArray } from "./arrayUtils";
+import { throwNever } from "./errorUtils";
+import { clamp } from "./numberUtils";
 
-export interface CursorPositions {
+export type CursorPositions = {
   anchor: EditorPosition;
   head: EditorPosition;
   from: EditorPosition;
   to: EditorPosition;
-}
+};
 
-export interface SelectedLinesDiff {
+export type SelectedLinesDiff = {
   oldLines: NonEmptyStringArray;
   newLines: NonEmptyStringArray;
-}
+};
 
-export interface LineDiff {
+export type LineDiff = {
   oldLine: string;
   newLine: string;
-}
+};
+
+export type SetCursorAction = {
+  type: "setCursor";
+  newPosition: EditorPosition;
+};
+
+export type SetSelectionAction = {
+  type: "setSelection";
+  newRange: EditorRange;
+};
+
+export type SetSelectionInCorrectDirectionAction = {
+  type: "setSelectionInCorrectDirection";
+  newRange: EditorRange;
+  originalCursorPositions: CursorPositions;
+};
+
+export type ClearSelectionAction = {
+  type: "clearSelection";
+  newCursor: EditorPosition;
+};
+
+export type CursorOrSelectionAction =
+  | SetCursorAction
+  | SetSelectionAction
+  | SetSelectionInCorrectDirectionAction
+  | ClearSelectionAction;
 
 /**
  * Replaces the selected lines with the new lines, and adjusts the editor selection to maintain its
@@ -39,7 +68,7 @@ export function replaceLinesAndAdjustSelection({
   });
   const newText = selectedLinesDiff.newLines.join("\n");
   editor.replaceRange(newText, selectedLinesRange.from, selectedLinesRange.to);
-  setSelectionInCorrectDirection(editor, originalCursorPositions, newSelectionRange);
+  setSelectionInCorrectDirection({ editor, originalCursorPositions, newRange: newSelectionRange });
 }
 
 function getNewSelectionRangeAfterReplacingLines({
@@ -59,7 +88,7 @@ function getNewSelectionRangeAfterReplacingLines({
  * Gets the new cursor `from` position after the selected lines have been altered, while keeping the
  * relative `from` position within the text the same.
  */
-function getNewFromPosition({
+export function getNewFromPosition({
   oldFrom,
   selectedLinesDiff,
 }: {
@@ -69,7 +98,8 @@ function getNewFromPosition({
   const { oldLines, newLines } = selectedLinesDiff;
   const didAddOrRemoveHeaderLine = oldLines.length !== newLines.length;
   if (didAddOrRemoveHeaderLine) {
-    // Select from the start of the header line if we added a new header line
+    // Select from the start of the header line if we added a new header line. If we removed a
+    // header line, we should still select from the start of the first line.
     return { line: oldFrom.line, ch: 0 };
   }
   const lineDiff = { oldLine: oldLines[0], newLine: newLines[0] };
@@ -81,7 +111,7 @@ function getNewFromPosition({
  * Gets the new cursor `to` position after the selected lines have been altered, while keeping the
  * relative `to` position within the text the same.
  */
-function getNewToPosition({
+export function getNewToPosition({
   oldTo,
   selectedLinesDiff,
 }: {
@@ -91,16 +121,23 @@ function getNewToPosition({
   const { oldLines, newLines } = selectedLinesDiff;
   const numLinesDiff = newLines.length - oldLines.length; // we may have added or removed a header line
   const newToLine = oldTo.line + numLinesDiff;
-  const lastLineDiff = { oldLine: getLastElement(oldLines), newLine: getLastElement(newLines) };
+  const lastLineDiff = getLastLineDiff(selectedLinesDiff);
   const newToCh = getNewPositionWithinLine({ oldCh: oldTo.ch, lineDiff: lastLineDiff });
   return { line: newToLine, ch: newToCh };
+}
+
+/**
+ * Gets the line diff for the last line of the selected lines.
+ */
+export function getLastLineDiff({ oldLines, newLines }: SelectedLinesDiff): LineDiff {
+  return { oldLine: getLastElement(oldLines), newLine: getLastElement(newLines) };
 }
 
 /**
  * Gets the new cursor `ch` position within a given line after it's been altered, while keeping the
  * cursor's relative position in the line the same.
  */
-function getNewPositionWithinLine({
+export function getNewPositionWithinLine({
   oldCh,
   lineDiff,
 }: {
@@ -109,15 +146,19 @@ function getNewPositionWithinLine({
 }): number {
   const { oldLine, newLine } = lineDiff;
   const lineLengthDiff = oldLine.length - newLine.length;
-  const newCh = Math.clamp(oldCh - lineLengthDiff, 0, newLine.length);
+  const newCh = clamp({ value: oldCh - lineLengthDiff, min: 0, max: newLine.length });
   return newCh;
 }
 
-function setSelectionInCorrectDirection(
-  editor: Editor,
-  originalCursorPositions: CursorPositions,
-  newRange: EditorRange
-): void {
+export function setSelectionInCorrectDirection({
+  editor,
+  originalCursorPositions,
+  newRange,
+}: {
+  editor: Editor;
+  originalCursorPositions: CursorPositions;
+  newRange: EditorRange;
+}): void {
   const { newAnchor, newHead } = getNewAnchorAndHead(originalCursorPositions, newRange);
   editor.setSelection(newAnchor, newHead);
 }
@@ -173,4 +214,65 @@ function getSelectionRange(editor: Editor): EditorRange {
   const from = editor.getCursor("from");
   const to = editor.getCursor("to");
   return { from, to };
+}
+
+export function runCursorOrSelectionAction({
+  editor,
+  action,
+}: {
+  editor: Editor;
+  action: CursorOrSelectionAction;
+}): void {
+  switch (action.type) {
+    case "setCursor": {
+      editor.setCursor(action.newPosition);
+      return;
+    }
+    case "setSelection": {
+      editor.setSelection(action.newRange.from, action.newRange.to);
+      return;
+    }
+    case "setSelectionInCorrectDirection": {
+      const { newRange, originalCursorPositions } = action;
+      setSelectionInCorrectDirection({ editor, originalCursorPositions, newRange });
+      return;
+    }
+    case "clearSelection": {
+      clearSelectionAndSetCursor({ editor, newCursor: action.newCursor });
+      return;
+    }
+    default:
+      throwNever(action);
+  }
+}
+
+/**
+ * Clears the selection and sets the cursor to the given position.
+ */
+export function clearSelectionAndSetCursor({
+  editor,
+  newCursor,
+}: {
+  editor: Editor;
+  newCursor: EditorPosition;
+}): void {
+  editor.setSelection(newCursor, newCursor);
+}
+
+export function getCalloutStartPos({
+  originalCursorPositions,
+}: {
+  originalCursorPositions: CursorPositions;
+}): EditorPosition {
+  const { from: oldFrom } = originalCursorPositions;
+  return { line: oldFrom.line, ch: 0 };
+}
+
+export function getClearSelectionCursorStartAction({
+  originalCursorPositions,
+}: {
+  originalCursorPositions: CursorPositions;
+}): ClearSelectionAction {
+  const startPos = { line: originalCursorPositions.from.line, ch: 0 };
+  return { type: "clearSelection", newCursor: startPos };
 }

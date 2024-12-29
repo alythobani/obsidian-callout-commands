@@ -1,27 +1,31 @@
 # Callout Toggles
 
-An [Obsidian plugin](https://obsidian.md/plugins?id=callout-toggles) to quickly add, change, or remove callouts in your notes.
+An [Obsidian plugin](https://obsidian.md/plugins?id=callout-toggles) to quickly add, switch, or remove callouts in your notes. Provides a separate command for every possible callout type, so you can easily assign hotkeys for your favorite callouts.
 
 ![Switching between callout types demonstration](./readme_gifs/main-demo-switching.gif)
 
+## Features
+
+- Quickly insert or remove a callout of your choice with a single command
+- Insert a fresh callout, or wrap existing text in a callout
+- Retains [custom titles](#retaining-custom-titles) when wrapping or removing callouts
+- Supports [custom callouts](#custom-callouts-callout-manager) (automatically syncs with [Callout Manager] if installed)
+- Configurable settings for default formatting, foldable callouts, and more
+
 ## Table of contents
 
-1. [Table of contents](#table-of-contents)
-2. [Commands provided](#commands-provided)
+1. [Features](#features)
+2. [Table of contents](#table-of-contents)
+3. [Commands provided](#commands-provided)
    1. [Wrap lines in X callout](#wrap-lines-in-x-callout)
    2. [Remove callout from selected lines](#remove-callout-from-selected-lines)
-3. [Usage examples](#usage-examples)
+4. [Usage examples](#usage-examples)
    1. [Inserting a fresh callout](#inserting-a-fresh-callout)
    2. [Wrapping the current line](#wrapping-the-current-line)
    3. [Wrapping multiple lines](#wrapping-multiple-lines)
    4. [Removing a callout](#removing-a-callout)
    5. [Retaining custom titles](#retaining-custom-titles)
-4. [Available settings](#available-settings)
-   1. [Explicit callout titles (default: on)](#explicit-callout-titles-default-on)
-   2. [Callout ID capitalization (default: lowercase)](#callout-id-capitalization-default-lowercase)
-   3. [Foldable callouts (default: unfoldable)](#foldable-callouts-default-unfoldable)
-   4. [Select text after inserting callout (default: off)](#select-text-after-inserting-callout-default-off)
-5. [Callout Manager integration (custom callouts)](#callout-manager-integration-custom-callouts)
+5. [Custom callouts (Callout Manager)](#custom-callouts-callout-manager)
 6. [Related plugins](#related-plugins)
 7. [Feedback](#feedback)
 8. [Appreciation](#appreciation)
@@ -42,7 +46,7 @@ One `Wrap lines in X callout` command is provided for every possible callout typ
 > [!IMPORTANT]
 > Note that a callout must begin on the first selected line of text for this command to be available.
 
-This will remove the callout syntax from the selected lines, turning the callout back into regular text. If a custom title is present, it will be retained as a Markdown heading.
+This will remove the callout syntax from the selected lines, turning the callout back into regular text. If a custom title is present, it will be retained as a Markdown heading (see [Retaining custom titles](#retaining-custom-titles)).
 
 ## Usage examples
 
@@ -82,39 +86,7 @@ This makes it easy to switch between callout types while retaining your custom t
 
 ![Retaining custom titles while switching between callout types](./readme_gifs/usage_examples/4b-custom-title-fast.gif)
 
-## Available settings
-
-### Explicit callout titles (default: on)
-
-Whether inserted callouts should have an explicit (e.g., `> [!quote] Quote`) or implicit (e.g., `> [!quote]`) title by default.
-
-### Callout ID capitalization (default: lowercase)
-
-The default capitalization format used for inserted callout IDs:
-
-- Lowercase: E.g. `> [!my-custom-callout]`
-- Uppercase: E.g. `> [!MY-CUSTOM-CALLOUT]`
-- Sentence case: E.g. `> [!My-custom-callout]`
-- Title case: E.g. `> [!My-Custom-Callout]`
-
-### Foldable callouts (default: unfoldable)
-
-Whether inserted callouts should be unfoldable, expanded, or collapsed by default.
-
-![Foldable callouts](./readme_gifs/settings/foldable-callouts.gif)
-
-### Select text after inserting callout (default: off)
-
-> [!NOTE]
-> This setting only affects what `Wrap lines in X callout` does *when no text is selected*. When text is already selected, the new callout's header is auto-selected for convenience, regardless of this setting.
-
-Whether to auto-select text up until the cursor, after inserting a callout with no text selected—e.g. when inserting a fresh callout, or wrapping the current line.
-
-Keep this setting disabled if you'd prefer to keep typing content after inserting/wrapping. Enable this setting if you'd prefer to be able to immediately run `Remove callout from selected lines` instead (useful for switching between callout types):
-
-![Select text after inserting callout](./readme_gifs/settings/select-text-after-inserting-callout.gif)
-
-## Callout Manager integration (custom callouts)
+## Custom callouts (Callout Manager)
 
 This plugin automatically integrates with the [Callout Manager] plugin, if you have it installed. This means that the callout types available in this plugin will be automatically synced with your custom callout types in Callout Manager.
 
@@ -131,7 +103,7 @@ If you'd like to be able to insert a fresh callout by choosing from a styled (wi
 
 ## Feedback
 
-If you have any feedback or suggestions, feel free to [open an issue](https://github.com/alythobani/obsidian-callout-toggles/issues) and I'd be happy to take a look!
+If you have any feedback or suggestions, feel free to [open an issue](https://github.com/alythobani/obsidian-callout-toggles/issues) and I'd be happy to take a look when I can.
 
 ## Appreciation
 

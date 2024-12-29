@@ -9,7 +9,7 @@
  */
 
 declare module "obsidian-callout-manager" {
-  import { App, Plugin, RGB } from "obsidian";
+  import { type App, type Plugin, type RGB } from "obsidian";
 
   /**
    * A type representing the ID of a callout.
@@ -25,7 +25,7 @@ declare module "obsidian-callout-manager" {
      */
     sources: CalloutSource[];
   };
-  interface CalloutProperties {
+  type CalloutProperties = {
     /**
      * The ID of the callout.
      * This is the part that goes in the callout header.
@@ -39,7 +39,7 @@ declare module "obsidian-callout-manager" {
      * The icon associated with the callout.
      */
     icon: string;
-  }
+  };
   /**
    * The source of a callout.
    * This is what declares the style information for the callout with the given ID.
@@ -52,36 +52,36 @@ declare module "obsidian-callout-manager" {
   /**
    * The callout is a built-in Obsidian callout.
    */
-  interface CalloutSourceObsidian {
+  type CalloutSourceObsidian = {
     type: "builtin";
-  }
+  };
   /**
    * The callout is from a snippet.
    */
-  interface CalloutSourceSnippet {
+  type CalloutSourceSnippet = {
     type: "snippet";
     snippet: string;
-  }
+  };
   /**
    * The callout is from a theme.
    */
-  interface CalloutSourceTheme {
+  type CalloutSourceTheme = {
     type: "theme";
     theme: string;
-  }
+  };
   /**
    * The callout was added by the user.
    */
-  interface CalloutSourceCustom {
+  type CalloutSourceCustom = {
     type: "custom";
-  }
+  };
 
-  interface CalloutManagerEventMap {
+  type CalloutManagerEventMap = {
     /**
      * Called whenever one or more callouts have changed.
      */
     change(): void;
-  }
+  };
   /**
    * A Callout Manager event that can be listened for.
    */
@@ -100,7 +100,7 @@ declare module "obsidian-callout-manager" {
   /**
    * An unowned handle for the Callout Manager API.
    */
-  interface CalloutManagerUnownedHandle {
+  type CalloutManagerUnownedHandle = {
     /**
      * Gets the list of available callouts.
      */
@@ -122,11 +122,11 @@ declare module "obsidian-callout-manager" {
      * @param callout The callout.
      */
     getTitle(callout: Callout): string;
-  }
+  };
   /**
    * An owned handle for the Callout Manager API.
    */
-  interface CalloutManagerOwnedHandle extends CalloutManagerUnownedHandle {
+  type CalloutManagerOwnedHandle = {
     /**
      * Registers an event listener.
      * If Callout Manager or the handle owner plugin are unloaded, all events will be unregistered automatically.
@@ -145,7 +145,7 @@ declare module "obsidian-callout-manager" {
      * @param listener The listener function to unregister.
      */
     off<E extends CalloutManagerEvent>(event: E, listener: CalloutManagerEventListener<E>): void;
-  }
+  } & CalloutManagerUnownedHandle;
 
   declare const PLUGIN_ID = "callout-manager";
   declare const PLUGIN_API_VERSION = "v1";
@@ -176,9 +176,9 @@ declare module "obsidian-callout-manager" {
     CalloutSourceObsidian,
     CalloutSourceSnippet,
     CalloutSourceTheme,
-    PLUGIN_API_VERSION,
-    PLUGIN_ID,
     getApi,
     isInstalled,
+    PLUGIN_API_VERSION,
+    PLUGIN_ID,
   };
 }
