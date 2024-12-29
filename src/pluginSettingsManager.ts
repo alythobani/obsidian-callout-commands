@@ -75,7 +75,7 @@ export class PluginSettingsManager extends PluginSettingTab {
   }
 
   private async loadSettings(): Promise<PluginSettingsV2> {
-    const loadedSettings = (await this.plugin.loadData()) as
+    const loadedSettings = ((await this.plugin.loadData()) ?? {}) as
       | Partial<PluginSettingsV1> // `Partial` since we didn't used to save full settings
       | PluginSettingsV2;
     if (loadedSettings.pluginVersion !== "1.2.0") {
