@@ -77,7 +77,12 @@ export class PluginSettingsManager extends PluginSettingTab {
   private async loadSettings(): Promise<PluginSettingsV2> {
     const loadedSettings = (await this.plugin.loadData()) as
       | Partial<PluginSettingsV1> // `Partial` since we didn't used to save full settings
-      | PluginSettingsV2;
+      | PluginSettingsV2
+      | null
+      | undefined;
+    if (loadedSettings === null || loadedSettings === undefined) {
+      return deepCloneSettings(DEFAULT_SETTINGS);
+    }
     if (loadedSettings.pluginVersion !== "1.2.0") {
       // Either empty or old settings (v1.1.0)
       const migratedSettings = migrateSettingsToV2(loadedSettings);
