@@ -78,7 +78,6 @@ export class PluginSettingsManager extends PluginSettingTab {
     const loadedSettings = (await this.plugin.loadData()) as
       | Partial<PluginSettingsV1> // `Partial` since we didn't used to save full settings
       | PluginSettingsV2;
-    console.log(`loadedSettings: ${JSON.stringify(loadedSettings)}`);
     if (loadedSettings.pluginVersion !== "1.2.0") {
       // Either empty or old settings (v1.1.0)
       const migratedSettings = migrateSettingsToV2(loadedSettings);
