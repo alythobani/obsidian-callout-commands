@@ -110,7 +110,7 @@ const testParams2: TestParams = {
   beforeAndAfter: beforeAndAfter2,
 };
 
-describe("whenTextSelected", () => {
+describe("afterRemovingCallout", () => {
   describe("originalSelection", () => {
     const testOriginalSelection: AfterRemovingCalloutTest = (testParams) =>
       testAfterRemovingCallout({

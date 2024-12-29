@@ -13,6 +13,8 @@ import {
   type ClearSelectionAction,
   type CursorOrSelectionAction,
   type CursorPositions,
+  getCalloutStartPos,
+  getClearSelectionCursorStartAction,
   getCursorPositions,
   getNewPositionWithinLine,
   getNewToPosition,
@@ -176,11 +178,11 @@ function getFullTextSelectionAction({
   selectedLinesDiff: SelectedLinesDiff;
   originalCursorPositions: CursorPositions;
 }): SetSelectionInCorrectDirectionAction {
-  const { from: oldFrom, to: oldTo } = originalCursorPositions;
-  const newFrom = { line: oldFrom.line, ch: 0 };
+  const newFrom = getCalloutStartPos({ originalCursorPositions });
 
   const { oldLines, newLines } = selectedLinesDiff;
   const didRemoveHeaderLine = oldLines.length !== newLines.length;
+  const { to: oldTo } = originalCursorPositions;
   const newToLine = didRemoveHeaderLine ? oldTo.line - 1 : oldTo.line;
   const newLastLine = getLastElement(newLines);
   const newTo = { line: newToLine, ch: newLastLine.length };
@@ -226,15 +228,6 @@ function getClearSelectionCursorToAction({
   // TODO: If user is in insert mode (with selection) or non-vim mode, we shouldn't subtract one
   const newCursor = { line: newTo.line, ch: newTo.ch - 1 };
   return { type: "clearSelection", newCursor };
-}
-
-function getClearSelectionCursorStartAction({
-  originalCursorPositions,
-}: {
-  originalCursorPositions: CursorPositions;
-}): ClearSelectionAction {
-  const startPos = { line: originalCursorPositions.from.line, ch: 0 };
-  return { type: "clearSelection", newCursor: startPos };
 }
 
 /**

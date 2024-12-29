@@ -205,6 +205,42 @@ describe("whenTextSelected", () => {
     });
   });
 
+  describe("clearSelectionCursorTo", () => {
+    const testClearSelectionCursorTo: AutoSelectionModeTestFn = (testParams) =>
+      testWhenTextSelected({
+        whenTextSelected: "clearSelectionCursorTo",
+        testParams,
+        getExpected: ({ after }) => ({
+          type: "clearSelection",
+          newCursor: { line: after.to.line, ch: after.to.ch - 1 },
+        }),
+      });
+    it("should clear the selection and move the cursor to the end of the callout", () => {
+      testClearSelectionCursorTo(testParams1);
+    });
+    test("with custom title", () => {
+      testClearSelectionCursorTo(testParams2);
+    });
+  });
+
+  describe("clearSelectionCursorStart", () => {
+    const testClearSelectionCursorStart: AutoSelectionModeTestFn = (testParams) =>
+      testWhenTextSelected({
+        whenTextSelected: "clearSelectionCursorStart",
+        testParams,
+        getExpected: ({ after }) => ({
+          type: "clearSelection",
+          newCursor: after.start,
+        }),
+      });
+    it("should select the original selection", () => {
+      testClearSelectionCursorStart(testParams1);
+    });
+    test("with custom title", () => {
+      testClearSelectionCursorStart(testParams2);
+    });
+  });
+
   describe("clearSelectionCursorEnd", () => {
     const testClearSelectionCursorEnd: AutoSelectionModeTestFn = (testParams) =>
       testWhenTextSelected({

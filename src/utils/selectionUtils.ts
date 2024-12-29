@@ -258,3 +258,21 @@ export function clearSelectionAndSetCursor({
 }): void {
   editor.setSelection(newCursor, newCursor);
 }
+
+export function getCalloutStartPos({
+  originalCursorPositions,
+}: {
+  originalCursorPositions: CursorPositions;
+}): EditorPosition {
+  const { from: oldFrom } = originalCursorPositions;
+  return { line: oldFrom.line, ch: 0 };
+}
+
+export function getClearSelectionCursorStartAction({
+  originalCursorPositions,
+}: {
+  originalCursorPositions: CursorPositions;
+}): ClearSelectionAction {
+  const startPos = { line: originalCursorPositions.from.line, ch: 0 };
+  return { type: "clearSelection", newCursor: startPos };
+}

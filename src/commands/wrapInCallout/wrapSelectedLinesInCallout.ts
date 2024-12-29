@@ -15,6 +15,8 @@ import {
   type ClearSelectionAction,
   type CursorOrSelectionAction,
   type CursorPositions,
+  getCalloutStartPos,
+  getClearSelectionCursorStartAction,
   getCursorPositions,
   getLastLineDiff,
   getNewFromPosition,
@@ -139,17 +141,23 @@ export function getCursorOrSelectionActionAfterWrappingSelectedLines({
       });
     }
     case "selectFull": {
-      return selectFull({ selectedLinesDiff, originalCursorPositions, didAddHeaderLine });
+      return getSelectFullAction({ selectedLinesDiff, originalCursorPositions, didAddHeaderLine });
     }
     case "selectTitle": {
       return getSelectTitleAction({ originalCursorPositions, calloutHeaderParts });
     }
     case "originalSelection": {
-      return selectOriginalSelection({
+      return getOriginalSelectionAction({
         selectedLinesDiff,
         originalCursorPositions,
         didAddHeaderLine,
       });
+    }
+    case "clearSelectionCursorTo": {
+      return getClearSelectionCursorToAction({ selectedLinesDiff, originalCursorPositions });
+    }
+    case "clearSelectionCursorStart": {
+      return getClearSelectionCursorStartAction({ originalCursorPositions });
     }
     case "clearSelectionCursorEnd": {
       return getClearSelectionCursorEndAction({
@@ -190,7 +198,7 @@ function getSelectHeaderToCursorAction({
 /**
  * Selects the original selection after wrapping the selected lines in a callout.
  */
-function selectOriginalSelection({
+function getOriginalSelectionAction({
   selectedLinesDiff,
   originalCursorPositions,
   didAddHeaderLine,
@@ -239,7 +247,7 @@ function getFirstLineDiff({
 /**
  * Selects the full callout after wrapping the selected lines in a callout.
  */
-function selectFull({
+function getSelectFullAction({
   selectedLinesDiff,
   originalCursorPositions,
   didAddHeaderLine,
@@ -268,6 +276,20 @@ function getSelectTitleAction({
   return { type: "setSelection", newRange: titleRange };
 }
 
+function getClearSelectionCursorToAction({
+  selectedLinesDiff,
+  originalCursorPositions,
+}: {
+  selectedLinesDiff: SelectedLinesDiff;
+  originalCursorPositions: CursorPositions;
+}): ClearSelectionAction {
+  const { to: oldTo } = originalCursorPositions;
+  const newTo = getNewToPosition({ oldTo, selectedLinesDiff });
+  // TODO: If user is in insert mode (with selection) or non-vim mode, we shouldn't subtract one
+  const newCursor = { line: newTo.line, ch: newTo.ch - 1 };
+  return { type: "clearSelection", newCursor };
+}
+
 /**
  * Clears the selection and moves the cursor to the end of the callout after wrapping the selected
  * lines in a callout.
@@ -283,15 +305,6 @@ function getClearSelectionCursorEndAction({
 }): ClearSelectionAction {
   const endPos = getCalloutEndPos({ selectedLinesDiff, originalCursorPositions, didAddHeaderLine });
   return { type: "clearSelection", newCursor: endPos };
-}
-
-function getCalloutStartPos({
-  originalCursorPositions,
-}: {
-  originalCursorPositions: CursorPositions;
-}): EditorPosition {
-  const { from: oldFrom } = originalCursorPositions;
-  return { line: oldFrom.line, ch: 0 };
 }
 
 function getCalloutEndPos({

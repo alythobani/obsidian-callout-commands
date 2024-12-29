@@ -15,6 +15,8 @@ export const whenTextSelectedAutoSelectionOptions: readonly TypedDropdownOption<
     { value: "selectFull", displayText: "Select full callout" },
     { value: "selectTitle", displayText: "Select callout title" },
     { value: "originalSelection", displayText: "Keep relative selection" },
+    { value: "clearSelectionCursorTo", displayText: "Clear selection" },
+    { value: "clearSelectionCursorStart", displayText: "Clear selection, cursor at start" },
     { value: "clearSelectionCursorEnd", displayText: "Clear selection, cursor at end" },
   ];
 
@@ -39,6 +41,8 @@ export type AutoSelectionWhenTextSelectedMode =
   | "selectFull"
   | "selectTitle"
   | "originalSelection"
+  | "clearSelectionCursorTo"
+  | "clearSelectionCursorStart"
   | "clearSelectionCursorEnd";
 
 export type AutoSelectionAfterRemovingCalloutMode =
