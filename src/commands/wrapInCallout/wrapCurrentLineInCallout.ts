@@ -146,6 +146,7 @@ function getSelectHeaderToCursorAction({
   oldLineText: string;
 }): SetSelectionAction {
   const newFrom = { line: oldCursor.line, ch: 0 };
+  // TODO: If the user is in insert mode or non-vim mode, we should only add 2 to the cursor's ch
   const newToCh = Math.min(oldCursor.ch + 3, oldLineText.length + 2);
   const newTo = { line: oldCursor.line + 1, ch: newToCh };
   return { type: "setSelection", newRange: { from: newFrom, to: newTo } };
