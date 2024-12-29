@@ -223,7 +223,9 @@ function getClearSelectionCursorToAction({
 }): ClearSelectionAction {
   const { to: oldTo } = originalCursorPositions;
   const newTo = getNewToPosition({ oldTo, selectedLinesDiff });
-  return { type: "clearSelection", newCursor: newTo };
+  // TODO: If user is in insert mode (with selection) or non-vim mode, we shouldn't subtract one
+  const newCursor = { line: newTo.line, ch: newTo.ch - 1 };
+  return { type: "clearSelection", newCursor };
 }
 
 function getClearSelectionCursorStartAction({
