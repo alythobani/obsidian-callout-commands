@@ -1,30 +1,39 @@
 # Callout Toggles
 
-An [Obsidian plugin](https://obsidian.md/plugins?id=callout-toggles) to quickly add, change, or remove callouts in your notes.
+An [Obsidian plugin](https://obsidian.md/plugins?id=callout-toggles) to quickly add, switch, or remove callouts in your notes. Provides a separate command for every possible callout type, so each of your favorite callouts can have its own hotkey.
 
 ![Switching between callout types demonstration](./readme_gifs/main-demo-switching.gif)
 
+## Features
+
+- Quickly insert or remove a callout of your choice with a single command
+- Insert a fresh callout, or wrap existing text in a callout
+- Retains [custom titles](#retaining-custom-titles) when wrapping or removing callouts
+- Supports [custom callouts](#callout-manager-integration-custom-callouts) (automatically syncs with [Callout Manager] if installed)
+- Configurable settings for default formatting, foldable callouts, and more
+
 ## Table of contents
 
-1. [Table of contents](#table-of-contents)
-2. [Commands provided](#commands-provided)
+1. [Features](#features)
+2. [Table of contents](#table-of-contents)
+3. [Commands provided](#commands-provided)
    1. [Wrap lines in X callout](#wrap-lines-in-x-callout)
    2. [Remove callout from selected lines](#remove-callout-from-selected-lines)
-3. [Usage examples](#usage-examples)
+4. [Usage examples](#usage-examples)
    1. [Inserting a fresh callout](#inserting-a-fresh-callout)
    2. [Wrapping the current line](#wrapping-the-current-line)
    3. [Wrapping multiple lines](#wrapping-multiple-lines)
    4. [Removing a callout](#removing-a-callout)
    5. [Retaining custom titles](#retaining-custom-titles)
-4. [Available settings](#available-settings)
+5. [Available settings](#available-settings)
    1. [Explicit callout titles (default: on)](#explicit-callout-titles-default-on)
    2. [Callout ID capitalization (default: lowercase)](#callout-id-capitalization-default-lowercase)
    3. [Foldable callouts (default: unfoldable)](#foldable-callouts-default-unfoldable)
    4. [Select text after inserting callout (default: off)](#select-text-after-inserting-callout-default-off)
-5. [Callout Manager integration (custom callouts)](#callout-manager-integration-custom-callouts)
-6. [Related plugins](#related-plugins)
-7. [Feedback](#feedback)
-8. [Appreciation](#appreciation)
+6. [Callout Manager integration (custom callouts)](#callout-manager-integration-custom-callouts)
+7. [Related plugins](#related-plugins)
+8. [Feedback](#feedback)
+9. [Appreciation](#appreciation)
 
 ## Commands provided
 
