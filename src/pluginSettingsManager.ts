@@ -176,7 +176,7 @@ export class PluginSettingsManager extends PluginSettingTab {
       .setName("Auto-selection / auto-cursor")
       .setHeading()
       .setDesc(
-        "What to select, or where to place the cursor, after running a command. Selecting the header (or full text) can help with switching callout types quickly. But the other modes have their own merits as well. Experiment around to see what you prefer!"
+        "What to select, or where to place the cursor, after running a command. Selecting up to the header (or full text) can help with switching callout types quickly (by running remove/wrap back to back). But the other modes have their own merits as well. Experiment around to see what you prefer!"
       );
     createTypedDropdownSetting({
       containerEl: this.containerEl,
