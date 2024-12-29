@@ -1,8 +1,8 @@
 import { describe, expect, it, test } from "vitest";
 import { getCursorOrSelectionActionAfterRemovingCallout } from "../../commands/removeCallout";
-import { AutoSelectionAfterRemovingCalloutMode } from "../../settings/autoSelectionModes";
+import { type AutoSelectionAfterRemovingCalloutMode } from "../../settings/autoSelectionModes";
 import { type CursorPositions, type SelectedLinesDiff } from "../../utils/selectionUtils";
-import { BeforeAndAfter, GetExpected } from "./testAutoSelectionMode";
+import { type BeforeAndAfter, type GetExpected } from "./testAutoSelectionMode";
 
 type TestParams = {
   selectedLinesDiff: SelectedLinesDiff;
@@ -172,7 +172,7 @@ describe("afterRemovingCallout", () => {
       testAfterRemovingCallout({
         afterRemovingCallout: "clearSelectionCursorStart",
         testParams,
-        getExpected: ({ after, originalCursorPositions }) => ({
+        getExpected: ({ after }) => ({
           type: "clearSelection",
           newCursor: after.start,
         }),

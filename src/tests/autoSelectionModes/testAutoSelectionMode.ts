@@ -1,5 +1,5 @@
-import { EditorPosition } from "obsidian";
-import { CursorOrSelectionAction, CursorPositions } from "../../utils/selectionUtils";
+import { type EditorPosition } from "obsidian";
+import { type CursorOrSelectionAction, type CursorPositions } from "../../utils/selectionUtils";
 
 export type BeforePositions = {
   start: EditorPosition;

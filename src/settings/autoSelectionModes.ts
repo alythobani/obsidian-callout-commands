@@ -62,9 +62,9 @@ export type AutoSelectionModes = {
 };
 
 export const DEFAULT_AUTO_SELECTION_MODES: AutoSelectionModes = {
-  whenNothingSelected: "originalCursor",
-  whenTextSelected: "selectFull",
-  afterRemovingCallout: "selectFull",
+  whenNothingSelected: "selectHeaderToCursor",
+  whenTextSelected: "selectHeaderToCursor",
+  afterRemovingCallout: "originalSelection",
 };
 
 export function migrateV1SettingToV2AutoSelectionModes({
@@ -73,7 +73,7 @@ export function migrateV1SettingToV2AutoSelectionModes({
   shouldSetSelectionAfterCurrentLineWrap: boolean;
 }): AutoSelectionModes {
   const whenNothingSelected = shouldSetSelectionAfterCurrentLineWrap
-    ? "selectFull"
+    ? "selectHeaderToCursor"
     : "originalCursor";
   const { whenTextSelected, afterRemovingCallout } = DEFAULT_AUTO_SELECTION_MODES;
   return { whenNothingSelected, whenTextSelected, afterRemovingCallout };

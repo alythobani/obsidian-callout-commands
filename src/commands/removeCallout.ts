@@ -1,6 +1,6 @@
 import { type Command, type Editor } from "obsidian";
 import { type PluginSettingsManager } from "../pluginSettingsManager";
-import { AutoSelectionAfterRemovingCalloutMode } from "../settings/autoSelectionModes";
+import { type AutoSelectionAfterRemovingCalloutMode } from "../settings/autoSelectionModes";
 import { getLastElement, isNonEmptyArray, type NonEmptyStringArray } from "../utils/arrayUtils";
 import {
   getCalloutIDAndExplicitTitle,

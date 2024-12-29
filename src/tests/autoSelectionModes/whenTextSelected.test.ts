@@ -2,8 +2,8 @@ import { describe, expect, it, test } from "vitest";
 import { getCursorOrSelectionActionAfterWrappingSelectedLines } from "../../commands/wrapInCallout/wrapSelectedLinesInCallout";
 import { type AutoSelectionWhenTextSelectedMode } from "../../settings/autoSelectionModes";
 import { type CalloutHeaderParts } from "../../utils/calloutTitleUtils";
-import { CursorPositions, type SelectedLinesDiff } from "../../utils/selectionUtils";
-import { BeforeAndAfter, GetExpected } from "./testAutoSelectionMode";
+import { type CursorPositions, type SelectedLinesDiff } from "../../utils/selectionUtils";
+import { type BeforeAndAfter, type GetExpected } from "./testAutoSelectionMode";
 
 export type TestParams = {
   calloutHeaderParts: CalloutHeaderParts;
