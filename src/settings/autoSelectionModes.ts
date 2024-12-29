@@ -18,7 +18,7 @@ export const whenTextSelectedAutoSelectionOptions: readonly TypedDropdownOption<
     { value: "clearSelectionCursorEnd", displayText: "Clear selection, cursor at end" },
   ];
 
-export const afterRemovingCalloutAutoSelectionOptions: readonly TypedDropdownOption<AutoSelectionAfterRemovingCalloutModes>[] =
+export const afterRemovingCalloutAutoSelectionOptions: readonly TypedDropdownOption<AutoSelectionAfterRemovingCalloutMode>[] =
   [
     { value: "originalSelection", displayText: "Keep relative selection" },
     { value: "selectFull", displayText: "Select full remaining lines" },
@@ -41,7 +41,7 @@ export type AutoSelectionWhenTextSelectedMode =
   | "originalSelection"
   | "clearSelectionCursorEnd";
 
-export type AutoSelectionAfterRemovingCalloutModes =
+export type AutoSelectionAfterRemovingCalloutMode =
   | "originalSelection"
   | "selectFull"
   | "clearSelectionCursorTo"
@@ -54,7 +54,7 @@ export type AutoSelectionModes = {
   /** Cursor/selection behavior after wrapping a selection. */
   whenTextSelected: AutoSelectionWhenTextSelectedMode;
   /** Cursor/selection behavior after removing a callout. */
-  afterRemovingCallout: AutoSelectionAfterRemovingCalloutModes;
+  afterRemovingCallout: AutoSelectionAfterRemovingCalloutMode;
 };
 
 export const DEFAULT_AUTO_SELECTION_MODES: AutoSelectionModes = {

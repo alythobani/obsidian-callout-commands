@@ -1,5 +1,6 @@
 import { type Command, type Editor } from "obsidian";
 import { type PluginSettingsManager } from "../pluginSettingsManager";
+import { AutoSelectionAfterRemovingCalloutMode } from "../settings/autoSelectionModes";
 import { getLastElement, isNonEmptyArray, type NonEmptyStringArray } from "../utils/arrayUtils";
 import {
   getCalloutIDAndExplicitTitle,
@@ -115,10 +116,11 @@ function setSelectionAfterRemovingCallout({
   originalCursorPositions: CursorPositions;
   pluginSettingsManager: PluginSettingsManager;
 }): void {
+  const { afterRemovingCallout } = pluginSettingsManager.getSetting("autoSelectionModes");
   const cursorOrSelectionAction = getCursorOrSelectionActionAfterRemovingCallout({
     selectedLinesDiff,
     originalCursorPositions,
-    pluginSettingsManager,
+    afterRemovingCallout,
   });
   runCursorOrSelectionAction({ editor, action: cursorOrSelectionAction });
 }
@@ -127,19 +129,18 @@ function setSelectionAfterRemovingCallout({
  * Sets the selection or cursor (depending on user setting) after removing the callout from the
  * selected lines.
  */
-function getCursorOrSelectionActionAfterRemovingCallout({
+export function getCursorOrSelectionActionAfterRemovingCallout({
+  afterRemovingCallout,
   selectedLinesDiff,
   originalCursorPositions,
-  pluginSettingsManager,
 }: {
+  afterRemovingCallout: AutoSelectionAfterRemovingCalloutMode;
   selectedLinesDiff: SelectedLinesDiff;
   originalCursorPositions: CursorPositions;
-  pluginSettingsManager: PluginSettingsManager;
 }): CursorOrSelectionAction {
   const { oldLines, newLines } = selectedLinesDiff;
   const didRemoveHeaderLine = oldLines.length !== newLines.length;
-  const autoSelectionModes = pluginSettingsManager.getSetting("autoSelectionModes");
-  switch (autoSelectionModes.afterRemovingCallout) {
+  switch (afterRemovingCallout) {
     case "originalSelection": {
       return getOriginalSelectionAction({
         selectedLinesDiff,
@@ -164,7 +165,7 @@ function getCursorOrSelectionActionAfterRemovingCallout({
       });
     }
     default:
-      throwNever(autoSelectionModes.afterRemovingCallout);
+      throwNever(afterRemovingCallout);
   }
 }
 

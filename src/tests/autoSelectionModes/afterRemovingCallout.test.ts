@@ -1,69 +1,61 @@
 import { describe, expect, it, test } from "vitest";
-import { getCursorOrSelectionActionAfterWrappingSelectedLines } from "../../commands/wrapInCallout/wrapSelectedLinesInCallout";
-import { type AutoSelectionWhenTextSelectedMode } from "../../settings/autoSelectionModes";
-import { type CalloutHeaderParts } from "../../utils/calloutTitleUtils";
-import { CursorPositions, type SelectedLinesDiff } from "../../utils/selectionUtils";
+import { getCursorOrSelectionActionAfterRemovingCallout } from "../../commands/removeCallout";
+import { AutoSelectionAfterRemovingCalloutMode } from "../../settings/autoSelectionModes";
+import { type CursorPositions, type SelectedLinesDiff } from "../../utils/selectionUtils";
 import { BeforeAndAfter, GetExpected } from "./testAutoSelectionMode";
 
-export type TestParams = {
-  calloutHeaderParts: CalloutHeaderParts;
+type TestParams = {
   selectedLinesDiff: SelectedLinesDiff;
   originalCursorPositions: CursorPositions;
   beforeAndAfter: BeforeAndAfter;
 };
 
-export type AutoSelectionModeTestFn = (testParams: TestParams) => void;
+type AfterRemovingCalloutTest = (testParams: TestParams) => void;
 
-function testWhenTextSelected({
-  whenTextSelected,
-  testParams: { calloutHeaderParts, selectedLinesDiff, originalCursorPositions, beforeAndAfter },
+function testAfterRemovingCallout({
+  afterRemovingCallout,
+  testParams: { selectedLinesDiff, originalCursorPositions, beforeAndAfter },
   getExpected,
 }: {
-  whenTextSelected: AutoSelectionWhenTextSelectedMode;
+  afterRemovingCallout: AutoSelectionAfterRemovingCalloutMode;
   testParams: TestParams;
   getExpected: GetExpected;
 }): void {
-  const result = getCursorOrSelectionActionAfterWrappingSelectedLines({
-    whenTextSelected,
+  const result = getCursorOrSelectionActionAfterRemovingCallout({
+    afterRemovingCallout,
     selectedLinesDiff,
     originalCursorPositions,
-    calloutHeaderParts,
   });
   const { after } = beforeAndAfter;
   const expectedResult = getExpected({ after, originalCursorPositions });
   expect(result).toEqual(expectedResult);
 }
 
-const calloutHeaderParts1: CalloutHeaderParts = {
-  baseCalloutHeader: "> [!quote]",
-  foldableSuffix: "+",
-  maybeTitle: "Quote",
-};
 const selectedLinesDiff1: SelectedLinesDiff = {
   oldLines: [
-    "This is a quote by Aristotle:",
-    "It is the mark of an educated mind to be able to entertain a thought without accepting it.",
-  ],
-  newLines: [
     "> [!quote]+ Quote",
     "> This is a quote by Aristotle:",
     "> It is the mark of an educated mind to be able to entertain a thought without accepting it.",
   ],
+  newLines: [
+    "This is a quote by Aristotle:",
+    "It is the mark of an educated mind to be able to entertain a thought without accepting it.",
+  ],
 };
 const beforeAndAfter1: BeforeAndAfter = {
   before: {
-    start: { line: 2, ch: 0 }, // "T" in "This"
-    end: { line: 3, ch: 90 }, // After "." in "it."
-    from: { line: 2, ch: 19 }, // "A" in "Aristotle"
-    to: { line: 3, ch: 11 }, // After "m" in "mark"
-  },
-  after: {
     start: { line: 2, ch: 0 }, // ">" in "> [!quote]"
     end: { line: 4, ch: 92 }, // After "." in "it."
-    from: { line: 3, ch: 21 }, // "A" in "Aristotle"
+    from: { line: 2, ch: 12 }, // "Q" in "Quote"
     to: { line: 4, ch: 13 }, // After "m" in "mark"
-    titleStart: { line: 2, ch: 12 }, // "Q" in "Quote"
-    titleEnd: { line: 2, ch: 17 }, // After "e" in "Quote
+  },
+  after: {
+    start: { line: 2, ch: 0 }, // "T" in "This"
+    end: { line: 3, ch: 90 }, // After "." in "it."
+    from: { line: 2, ch: 0 }, // "T" in "This" (clamped here since header is gone)
+    to: { line: 3, ch: 11 }, // After "m" in "mark"
+    titleStart: { line: 2, ch: 0 }, // No title
+    titleEnd: { line: 2, ch: 0 }, // No title
   },
 };
 const originalCursorPositions1 = {
@@ -73,43 +65,37 @@ const originalCursorPositions1 = {
   to: beforeAndAfter1.before.to,
 };
 const testParams1: TestParams = {
-  calloutHeaderParts: calloutHeaderParts1,
   selectedLinesDiff: selectedLinesDiff1,
   originalCursorPositions: originalCursorPositions1,
   beforeAndAfter: beforeAndAfter1,
 };
 
-const calloutHeaderParts2: CalloutHeaderParts = {
-  baseCalloutHeader: "> [!quote]",
-  foldableSuffix: "+",
-  maybeTitle: "Custom title",
-};
 const selectedLinesDiff2: SelectedLinesDiff = {
   oldLines: [
-    "### Custom title",
-    "This is a quote by Aristotle:",
-    "It is the mark of an educated mind to be able to entertain a thought without accepting it.",
-  ],
-  newLines: [
     "> [!quote]+ Custom title",
     "> This is a quote by Aristotle:",
     "> It is the mark of an educated mind to be able to entertain a thought without accepting it.",
   ],
+  newLines: [
+    "### Custom title",
+    "This is a quote by Aristotle:",
+    "It is the mark of an educated mind to be able to entertain a thought without accepting it.",
+  ],
 };
 const beforeAndAfter2: BeforeAndAfter = {
   before: {
-    start: { line: 2, ch: 0 }, // First "#" in heading
-    end: { line: 4, ch: 90 }, // After "." in "it."
-    from: { line: 2, ch: 4 }, // "C" in "Custom title"
-    to: { line: 4, ch: 11 }, // After "m" in "mark"
-  },
-  after: {
     start: { line: 2, ch: 0 }, // ">" in header
     end: { line: 4, ch: 92 }, // After "." in "it."
     from: { line: 2, ch: 12 }, // "C" in "Custom title"
     to: { line: 4, ch: 13 }, // After "m" in "mark"
-    titleStart: { line: 2, ch: 12 }, // "C" in "Custom title"
-    titleEnd: { line: 2, ch: 24 }, // After "e" in "title"
+  },
+  after: {
+    start: { line: 2, ch: 0 }, // First "#" in heading
+    end: { line: 4, ch: 90 }, // After "." in "it."
+    from: { line: 2, ch: 4 }, // "C" in "Custom title"
+    to: { line: 4, ch: 11 }, // After "m" in "mark"
+    titleStart: { line: 2, ch: 4 }, // "C" in "Custom title"
+    titleEnd: { line: 2, ch: 16 }, // After "e" in "title"
   },
 };
 const originalCursorPositions2 = {
@@ -119,36 +105,35 @@ const originalCursorPositions2 = {
   to: beforeAndAfter2.before.to,
 };
 const testParams2: TestParams = {
-  calloutHeaderParts: calloutHeaderParts2,
   selectedLinesDiff: selectedLinesDiff2,
   originalCursorPositions: originalCursorPositions2,
   beforeAndAfter: beforeAndAfter2,
 };
 
 describe("whenTextSelected", () => {
-  describe("selectHeaderToCursor", () => {
-    const testHeaderToCursor: AutoSelectionModeTestFn = (testParams) =>
-      testWhenTextSelected({
-        whenTextSelected: "selectHeaderToCursor",
+  describe("originalSelection", () => {
+    const testOriginalSelection: AfterRemovingCalloutTest = (testParams) =>
+      testAfterRemovingCallout({
+        afterRemovingCallout: "originalSelection",
         testParams,
         getExpected: ({ after, originalCursorPositions }) => ({
           type: "setSelectionInCorrectDirection",
-          newRange: { from: after.start, to: after.to },
+          newRange: { from: after.from, to: after.to },
           originalCursorPositions,
         }),
       });
     it("should select from the start of the header to the cursor (inclusive)", () => {
-      testHeaderToCursor(testParams1);
+      testOriginalSelection(testParams1);
     });
     test("with custom title", () => {
-      testHeaderToCursor(testParams2);
+      testOriginalSelection(testParams2);
     });
   });
 
   describe("selectFull", () => {
-    const testSelectFull: AutoSelectionModeTestFn = (testParams) =>
-      testWhenTextSelected({
-        whenTextSelected: "selectFull",
+    const testSelectFull: AfterRemovingCalloutTest = (testParams) =>
+      testAfterRemovingCallout({
+        afterRemovingCallout: "selectFull",
         testParams,
         getExpected: ({ after, originalCursorPositions }) => ({
           type: "setSelectionInCorrectDirection",
@@ -164,47 +149,46 @@ describe("whenTextSelected", () => {
     });
   });
 
-  describe("selectTitle", () => {
-    const testSelectTitle: AutoSelectionModeTestFn = (testParams) =>
-      testWhenTextSelected({
-        whenTextSelected: "selectTitle",
+  describe("clearSelectionCursorTo", () => {
+    const testClearSelectionCursorTo: AfterRemovingCalloutTest = (testParams) =>
+      testAfterRemovingCallout({
+        afterRemovingCallout: "clearSelectionCursorTo",
         testParams,
         getExpected: ({ after }) => ({
-          type: "setSelection",
-          newRange: { from: after.titleStart, to: after.titleEnd },
+          type: "clearSelection",
+          newCursor: after.to,
         }),
       });
     it("should select the title", () => {
-      testSelectTitle(testParams1);
+      testClearSelectionCursorTo(testParams1);
     });
     test("with custom title", () => {
-      testSelectTitle(testParams2);
+      testClearSelectionCursorTo(testParams2);
     });
   });
 
-  describe("originalSelection", () => {
-    const testOriginalSelection: AutoSelectionModeTestFn = (testParams) =>
-      testWhenTextSelected({
-        whenTextSelected: "originalSelection",
+  describe("clearSelectionCursorStart", () => {
+    const testClearSelectionCursorStart: AfterRemovingCalloutTest = (testParams) =>
+      testAfterRemovingCallout({
+        afterRemovingCallout: "clearSelectionCursorStart",
         testParams,
         getExpected: ({ after, originalCursorPositions }) => ({
-          type: "setSelectionInCorrectDirection",
-          newRange: { from: after.from, to: after.to },
-          originalCursorPositions,
+          type: "clearSelection",
+          newCursor: after.start,
         }),
       });
     it("should select the original selection", () => {
-      testOriginalSelection(testParams1);
+      testClearSelectionCursorStart(testParams1);
     });
     test("with custom title", () => {
-      testOriginalSelection(testParams2);
+      testClearSelectionCursorStart(testParams2);
     });
   });
 
   describe("clearSelectionCursorEnd", () => {
-    const testClearSelectionCursorEnd: AutoSelectionModeTestFn = (testParams) =>
-      testWhenTextSelected({
-        whenTextSelected: "clearSelectionCursorEnd",
+    const testClearSelectionCursorEnd: AfterRemovingCalloutTest = (testParams) =>
+      testAfterRemovingCallout({
+        afterRemovingCallout: "clearSelectionCursorEnd",
         testParams,
         getExpected: ({ after }) => ({
           type: "clearSelection",
