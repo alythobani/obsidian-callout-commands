@@ -156,7 +156,7 @@ describe("whenTextSelected", () => {
         testParams,
         getExpected: ({ after }) => ({
           type: "clearSelection",
-          newCursor: after.to,
+          newCursor: { line: after.to.line, ch: after.to.ch - 1 },
         }),
       });
     it("should select the title", () => {
